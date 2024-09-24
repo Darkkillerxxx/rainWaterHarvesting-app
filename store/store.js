@@ -3,8 +3,9 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers } from 'redux';
-import thunk from 'redux-thunk'; // Thunk is included in Redux Toolkit by default
+//import thunk from 'redux-thunk'; // Thunk is included in Redux Toolkit by default
 import picklistValueReducer from '../features/getPicklistValuesSlice'; // A slice for handling data
+import userDetailsReducer from '../features/userDetails';
 
 // Persist config
 const persistConfig = {
@@ -15,6 +16,7 @@ const persistConfig = {
 // Combine reducers
 const rootReducer = combineReducers({
   data: picklistValueReducer,
+  userDetails:userDetailsReducer
 });
 
 // Persisted reducer

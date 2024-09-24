@@ -12,7 +12,7 @@ const AppDrawer = (props) =>{
     const [userData,setUserData] = useState(null);
 
     const { userDetails } = useSelector((state)=>{
-        // console.log(state.userDetails)
+        console.log(state.userDetails)
         return state.userDetails;
     })
 
