@@ -58,7 +58,7 @@ const AppDrawer = (props) =>{
                                         <AppText style={{...styles.actionText,...{marginLeft:20}}}>{menuContent.label}</AppText> 
                                     </TouchableOpacity>
                                     :
-                                    menuContent.visibleToGuest ?
+                                    menuContent.visibleToGuest && !userData?.userType?
                                     <TouchableOpacity
                                         key={menuContent.value}
                                         style={styles.actionItem}
