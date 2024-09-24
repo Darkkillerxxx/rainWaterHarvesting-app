@@ -13,5 +13,5 @@ const userDetailsSlice = createSlice({
     }
 })
 export const { storeUserDetails } = userDetailsSlice.actions;
-
 export default userDetailsSlice.reducer;
+

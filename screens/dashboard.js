@@ -19,6 +19,10 @@ const Dashboard = () => {
     return state.data
   });
 
+  const { userDetails } = useSelector((state)=>{
+    return state.userDetails;
+  })
+
 
   useEffect(() => {
     dispatch(fetchPicklistValues());
