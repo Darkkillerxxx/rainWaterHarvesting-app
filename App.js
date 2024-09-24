@@ -10,6 +10,8 @@ import Register from './screens/register';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store/store';
+import AppDrawer from './components/AppDrawer';
+import { menuContents } from './common/menu';
 
 const Drawer = createDrawerNavigator();
 
@@ -18,7 +20,8 @@ export default function App() {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <NavigationContainer>
-          <Drawer.Navigator initialRouteName="Dashboard">
+          <Drawer.Navigator initialRouteName="Dashboard" 
+          drawerContent={(props) => <AppDrawer {...props}/>}>
             <Drawer.Screen name="Dashboard" component={Dashboard} />
             <Drawer.Screen name="DataTable" component={DataTable} />
             <Drawer.Screen name="CreateEditRecords" component={CreateEditRecords} />
