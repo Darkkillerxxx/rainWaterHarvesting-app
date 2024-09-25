@@ -46,7 +46,8 @@ const AppInputOptions = ({inputOptions,text,onButtonSelect}) =>{
 const styles = StyleSheet.create({
     scrollViewStyle:{
         width:'100%',
-        height:50
+        height:50,
+        marginLeft:-10
     },
     buttonUnselectedStyle:{
         height:35,
@@ -56,6 +57,7 @@ const styles = StyleSheet.create({
         borderRadius:5,
         minWidth:100,
         margin:10,
+        padding:5,
         borderColor:'#1890ff'
     },
     buttonSelectedStyle:{
