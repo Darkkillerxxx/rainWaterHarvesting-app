@@ -2,11 +2,11 @@ import { View,StyleSheet } from "react-native"
 import AppText from "./AppText"
 import { Picker } from "@react-native-picker/picker"
 
-const AppPicklist = ({picklistValues,onChangeValue,identifier,label,selectedValue}) =>{
+const AppPicklist = ({style,picklistValues,onChangeValue,identifier,label,selectedValue}) =>{
     return (
         <>
             <AppText style={styles.appTextStyle}>{label}</AppText>
-            <View style={styles.picklistContainer}>  
+            <View style={{...styles.picklistContainer,...style}}>  
             <Picker
                 selectedValue={selectedValue}
                 style={{width:'100%',height:20}}

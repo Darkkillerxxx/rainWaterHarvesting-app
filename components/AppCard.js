@@ -13,7 +13,7 @@ const AppCard = ({children,style}) =>{
 const styles = StyleSheet.create({
     AppCard:{
         width:'45%',
-        height:100,
+        minHeight:100,
         backgroundColor:'#ffffff',
         elevation:2,
         borderRadius:5,
