@@ -10,6 +10,7 @@ import { PieChart } from "react-native-gifted-charts";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPicklistValues } from '../features/getPicklistValuesSlice';
 import MapView, {Marker} from 'react-native-maps';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 const Dashboard = () => {
@@ -36,7 +37,7 @@ const Dashboard = () => {
 
   return (
     <MasterLayout>  
-      <ScrollView>
+      {/* <ScrollView>
         <DashboardCards />
         <View style={{width:'100%',flexDirection:'row',justifyContent:'space-around',marginTop:10}}>
           <AppCard style={{height:200}}>
@@ -64,12 +65,7 @@ const Dashboard = () => {
           </AppCard>
         </View>
 
-        {/* <View style={{width:'100%',flexDirection:'row',justifyContent:'space-around',marginTop:20}}>
-          <AppCard style={{height:500,width:'100%',justifyContent:'center',padding:20}}>
-          
-          </AppCard>
-        </View> */}
-      </ScrollView>     
+      </ScrollView>      */}
     </MasterLayout>
   );
 }

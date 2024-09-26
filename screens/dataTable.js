@@ -16,7 +16,7 @@ import AppInputOptions from '../components/AppInputOptions';
 import Modal from "react-native-modal";
 import AppModal from '../components/AppModal';
 
-const ViewRecords = () => {
+const ViewRecords = ({navigation}) => {
   const inputOptions = [{label:'Only Ground Work Records',value:1,isSelected:false},{label:'Only Completed Records',value:2,isSelected:false}]
   const { loading, data, error } = useSelector((state) => {
     return state.data
@@ -31,9 +31,6 @@ const ViewRecords = () => {
   const [itemsPerPage, onItemsPerPageChange] = useState(
     numberOfItemsPerPageList[0]
   );
-  const [district,setDistrict] = useState('');
-  const [taluka,setTaluka] = useState('');
-  const [village,setVillage] = useState('')
   const [showModal,setShowModal] = useState(false);
   const [records,setRecords] = useState([]);
   const [searchText,setSearchText] = useState('');
@@ -43,8 +40,8 @@ const ViewRecords = () => {
   const to = Math.min((page + 1) * itemsPerPage, recordsToDisplay.length);
 
 
-  const fetchRecords =  async() =>{
-    const apiResponse = await callAPI(`https://rainwaterharvesting-backend.onrender.com/fetchRecords?District=${district ? district : ''}&Taluka=${taluka ? taluka : ''}&Village=${village ? village : ''}&offSet=0`,
+  const fetchRecords =  async(district,taluka) =>{
+    const apiResponse = await callAPI(`https://rainwaterharvesting-backend.onrender.com/fetchRecords?District=${district ? district : ''}&Taluka=${taluka ? taluka : ''}&Village=&offSet=0`,
       'GET'
     )
     if(apiResponse.data.code != 200){
@@ -56,7 +53,11 @@ const ViewRecords = () => {
   }
   
   useEffect(()=>{
-    fetchRecords();
+    if(userDetails){
+      fetchRecords(userDetails.district,userDetails.taluka);
+      return;
+    }
+    fetchRecords(null,null);
   },[])
 
   const applyFilters = (filters) =>{
@@ -87,6 +88,12 @@ const ViewRecords = () => {
       setRecordsToDisplay([...filteredTableData]);
     }
   },[searchText])
+
+  const onRecordClick = (record) => {
+    navigation.navigate('CreateEditRecords',{
+      record
+    })
+  }
 
    useEffect(() => {
      setPage(0);
@@ -119,7 +126,7 @@ const ViewRecords = () => {
             </DataTable.Header>
       
             {recordsToDisplay.slice(from, to).map((item,index) => (
-              <DataTable.Row key={index}>
+              <DataTable.Row onPress={()=> onRecordClick(item)} key={index}>
                 <DataTable.Cell style={{width:75}}>{item.DISTRICT}</DataTable.Cell>
                 <DataTable.Cell style={{width:75}}>{item.TALUKA}</DataTable.Cell>
                 <DataTable.Cell style={{width:75}}>{item.VILLAGE}</DataTable.Cell>

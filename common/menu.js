@@ -18,7 +18,7 @@ export const menuContents = [
     {
         label:"Create Records",
         value:"CreateRecords",
-        screenName:'CreateRecords',
+        screenName:'CreateEditRecords',
         icon:'add-outline',
         visibleToGuest:false,
         visbleTo:[1,2,3]
