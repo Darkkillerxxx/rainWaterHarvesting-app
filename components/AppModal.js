@@ -15,10 +15,24 @@ const AppModal = ({userDetails,inputOptions,applyFilters,picklistValues}) =>{
     const [selectedOption,setSelectedOption] = useState(null);
 
     useEffect(()=>{
+        if(userDetails){
+            if(userDetails.userType === 2){
+                onPicklistSelect('District',userDetails.district);
+            }
+            if(userDetails.userType === 3){
+                onPicklistSelect('District',userDetails.district);
+            }
+        }
         if(picklistValues && picklistValues.data.length > 0){
             setDistrictPicklistValues()
         }
-    },[picklistValues])
+    },[])
+
+    useEffect(()=>{
+        if(userDetails && district.length > 0 && userDetails.userType === 3){
+            onPicklistSelect('Taluka',userDetails.taluka);
+        }
+    },[district])
 
     const setDistrictPicklistValues = () => {
         const districtPicklistValuesSet = [...new Set(picklistValues.data.map((value) => value.DISTRICT.trim().toUpperCase()))]
