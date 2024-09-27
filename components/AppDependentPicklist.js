@@ -107,7 +107,7 @@ const DependentPicklist = ({onSetDependentPicklistValue}) =>{
             {
                 userDetails.userType === 1 || !userDetails ? 
                 <View style={{width:'100%',marginTop:-5}}>
-                    <AppPicklist label='Select District' onChangeValue={onPicklistValueChange} identifier={'District'} selectedValue={district} picklistValues={districtValues}/>
+                    <AppPicklist style={{borderRadius:5}} label='Select District' onChangeValue={onPicklistValueChange} identifier={'District'} selectedValue={district} picklistValues={districtValues}/>
                 </View>
                 : 
                 null
@@ -116,14 +116,14 @@ const DependentPicklist = ({onSetDependentPicklistValue}) =>{
            {
                 userDetails.userType === 1 || userDetails.userType === 2 || !userDetails ? 
                 <View style={{width:'100%',marginTop:-10}}>
-                    <AppPicklist label='Select Taluka'  onChangeValue={onPicklistValueChange} identifier={'Taluka'} selectedValue={taluka} picklistValues={talukaValues}/>
+                    <AppPicklist style={{borderRadius:5}} label='Select Taluka' onChangeValue={onPicklistValueChange} identifier={'Taluka'} selectedValue={taluka} picklistValues={talukaValues}/>
                 </View>
                 : 
                 null
             }
            
             <View style={{width:'100%',marginTop:-10}}>
-                <AppPicklist label='Select Village' onChangeValue={onPicklistValueChange} identifier={'Village'} selectedValue={village} picklistValues={villageValues}/>
+                <AppPicklist style={{borderRadius:5}} label='Select Village' onChangeValue={onPicklistValueChange} identifier={'Village'} selectedValue={village} picklistValues={villageValues}/>
             </View>
         </>
     )

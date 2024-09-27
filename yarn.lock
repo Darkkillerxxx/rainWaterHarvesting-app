@@ -6088,6 +6088,11 @@ react-native-pie-chart@^3.0.2:
   dependencies:
     d3-shape "3.2.0"
 
+react-native-reanimated-carousel@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.npmjs.org/react-native-reanimated-carousel/-/react-native-reanimated-carousel-3.5.1.tgz"
+  integrity sha512-9BBQV6JAYSQm2lV7MFtT4mzapXmW4IZO6s38gfiJL84Jg23ivGB1UykcNQauKgtHyhtW2NuZJzItb1s42lM+hA==
+
 react-native-reanimated@^3.15.3:
   version "3.15.3"
   resolved "https://registry.npmjs.org/react-native-reanimated/-/react-native-reanimated-3.15.3.tgz"

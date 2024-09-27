@@ -261,17 +261,17 @@ const CreateEditRecords = ({route,navigation}) => {
                 <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
                       <View style={{width:'50%'}}>
                         <AppText>District</AppText>
-                        <AppTextBold>{route.params.record.DISTRICT}</AppTextBold>
+                        <AppTextBold>{route?.params?.record.DISTRICT}</AppTextBold>
                       </View>
 
                       <View style={{width:'50%'}}>
                         <AppText>Taluka</AppText>
-                        <AppTextBold>{route.params.record.TALUKA}</AppTextBold>
+                        <AppTextBold>{route?.params?.record.TALUKA}</AppTextBold>
                       </View>
                     </View>
                     <View style={{width:'100%',marginTop:10}}>
                         <AppText>Village</AppText>
-                        <AppTextBold>{route.params.record.VILLAGE}</AppTextBold>
+                        <AppTextBold>{route?.params?.record.VILLAGE}</AppTextBold>
                     </View>
                 </>
                 :
@@ -328,7 +328,6 @@ const CreateEditRecords = ({route,navigation}) => {
               }
               
           </View>
-
               
           <View style={{width:'100%'}}>
               <View style={{marginTop:15}}>
