@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Button,Platform,Image, ScrollView, PermissionsAndroid, ActivityIndicator, ToastAndroid } from 'react-native';
+import { StyleSheet, Text, View,Button,Platform,Image, ScrollView, PermissionsAndroid, ActivityIndicator, ToastAndroid } from 'react-native';
 import MasterLayout from '../components/MasterLayout';
 import AppCard from '../components/AppCard';
 import AppText from '../components/AppText';
@@ -10,12 +10,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AppButton from '../components/AppButton';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Marker, { Position, ImageFormat,TextBackgroundType} from 'react-native-image-marker';
-import RNFS from 'react-native-fs';
 import { useFocusEffect } from '@react-navigation/native';
 import DependentPicklist from '../components/AppDependentPicklist';
 import Geolocation from '@react-native-community/geolocation';
 import { callAPI } from '../common/api';
 import AppMessage from '../components/AppMessage';
+import { useSelector } from 'react-redux';
+import CheckBox from '@react-native-community/checkbox';
 
 const CreateEditRecords = ({route,navigation}) => {
   
@@ -30,19 +31,30 @@ const CreateEditRecords = ({route,navigation}) => {
   const [showCompletedDatePicker,setShowCompletedDatePicker] = useState(false);
   const [latLongLoader,setLatLongLoader] = useState(false); 
   const [isLoading,setIsLoading] = useState(false);
-  const [isImageLoading,setIsImageLoading]= useState(false);
+  const [isInaugurationImageLoading,setInaugurationIsImageLoading]= useState(false);
+  const [isCompletedImageLoading,setCompletedIsImageLoading]= useState(false);
+  const [recordId,setRecordId] = useState(null);
+  const [isRecordAuthorized,setIsRecordAuthorized] = useState(false)
+  const [implementationAuthority,setImplementationAuthority] = useState('')
+
   const [longitude,setLongitude] = useState(null);
   const [latitude,setLatitude] = useState(null);
   const [district,setDistrict] = useState('');
   const [taluka,setTaluka] = useState('');
   const [village,setVillage] = useState('');
-  const [error,setError] = useState('')
+  const [error,setError] = useState('');
+
+  
+  const { userDetails } = useSelector((state)=>{
+    return state.userDetails;
+  })
 
   useFocusEffect(
     React.useCallback(()=>{
-      console.log(route?.params?.record)
+      console.log(54,route?.params?.record)
       if(route?.params?.record){
-        const { DISTRICT, LONGITUDE, LATITUDE, TALUKA, VILLAGE, LOCATION, WORK_NAME, Inauguration_PHOTO1, COMPLETED_PHOTO1, COMPLETED_DATE, Inauguration_DATE } = route?.params?.record
+        const {ID, DISTRICT, LONGITUDE, LATITUDE, TALUKA, VILLAGE, LOCATION, WORK_NAME, Inauguration_PHOTO1, COMPLETED_PHOTO1, COMPLETED_DATE, Inauguration_DATE, IS_AUTH, IMPLIMANTATION_AUTHORITY } = route?.params?.record;
+        
         setIsEditMode(true);
         setDistrict(DISTRICT);
         setTaluka(TALUKA);
@@ -51,15 +63,36 @@ const CreateEditRecords = ({route,navigation}) => {
         setWorkDetails(WORK_NAME);
         setLongitude(LONGITUDE);
         setLatitude(LATITUDE);
-        setCompletedDate(COMPLETED_DATE ? COMPLETED_DATE: '');
+        setRecordId(ID);
+        setCompletedDate(COMPLETED_DATE ? COMPLETED_DATE.split('T')[0]: '');
         setInaugurationDate(Inauguration_DATE ? Inauguration_DATE.split('T')[0]: '');
         setInaugurationPhoto(Inauguration_PHOTO1 ? Inauguration_PHOTO1.split('T')[0] : null);
-        setCompletedPhoto(COMPLETED_PHOTO1 ? COMPLETED_PHOTO1 : null)
+        setIsRecordAuthorized(IS_AUTH ? true : false)
+        setImplementationAuthority(IMPLIMANTATION_AUTHORITY);
+
+        console.log(61,COMPLETED_PHOTO1,IS_AUTH);
+        
+        setCompletedPhoto(COMPLETED_PHOTO1 ? COMPLETED_PHOTO1 : null);
+      }
+      else{
+        setIsEditMode(false);
+        setDistrict(null);
+        setTaluka(null);
+        setVillage('');
+        setLocation('');
+        setWorkDetails('');
+        setLongitude('');
+        setLatitude('');
+        setRecordId('');
+        setCompletedDate('');
+        setInaugurationDate('');
+        setInaugurationPhoto(null); 
+        setCompletedPhoto(null);
+        setIsRecordAuthorized(false);
+        setImplementationAuthority('');
       }
     },[route])  
   )
-
-
 
   const onInaugurationDateFocus = (isShow) => {
     setShowInaugurationDatePicker(isShow)
@@ -81,11 +114,11 @@ const CreateEditRecords = ({route,navigation}) => {
     setCompletedDate(selectedCompletedDate);
   }
 
-  const pickImageFromCamera = () => {
+  const pickImageFromCamera = (photoType) => {
     launchCamera({mediaType: 'photo', saveToPhotos: true}, async (response) => {
       if (response.assets && response.assets[0]) {
           let imageUri = response.assets[0].uri;
-          addTextToImage(imageUri);
+          addTextToImage(imageUri,photoType);
         }
       }
     );
@@ -134,8 +167,6 @@ const CreateEditRecords = ({route,navigation}) => {
       },
       (error) => {
         setLatLongLoader(false);
-        // Handle error in getting location
-        //Alert.alert('Error', 'Unable to fetch location. Please try again.');
         console.log(error);
       },
       {
@@ -146,9 +177,11 @@ const CreateEditRecords = ({route,navigation}) => {
     );
   };
 
-  const addTextToImage = async (imageUri) => {
+  const addTextToImage = async (imageUri,photoType) => {
     try {
-      setIsImageLoading(true);
+
+      photoType === 'Inauguration' ? setInaugurationIsImageLoading(true) : setCompletedIsImageLoading(true);
+
       const markRes = await Marker.markText({
         backgroundImage: {
           src: imageUri,
@@ -181,20 +214,66 @@ const CreateEditRecords = ({route,navigation}) => {
         quality: 100,
         saveFormat: ImageFormat.base64,
       });
-      setIsImageLoading(false);
-      setInaugurationPhoto(markRes); // Update the marked image URI
+
+      photoType === 'Inauguration' ? setInaugurationIsImageLoading(false) : setCompletedIsImageLoading(false)
+      photoType === 'Inauguration' ? setInaugurationPhoto(markRes) : setCompletedPhoto(markRes)      
     } catch (error) {
-      setIsImageLoading(false);
+      photoType === 'Inauguration' ? setInaugurationIsImageLoading(false) : setCompletedIsImageLoading(false);
       console.log('Error marking image:', error);
     }
   };
 
-  const onEditClick = () =>{
+  const onEditClick = async () =>{
     try{
+      setIsLoading(true);
+      setError('');
+      console.log(230,userDetails.userType,isRecordAuthorized)
+      if(userDetails.userType != 1 && isRecordAuthorized){
+        setError('This record is authorised by the Admin so cannot be eddited');
+        return;
+      }
+      const payload = {
+        ID:recordId,
+        DISTRICT:district,
+        TALUKA:taluka,
+        VILLAGE:village,
+        LOCATION:location,
+        WORK_NAME:workDetails,
+        LONGITUDE:longitude ? longitude : 0,
+        LATITUDE:latitude ? latitude : 0,
+        Inauguration_DATE:inaugurationDate ? inaugurationDate.includes('/') ? `${inaugurationDate.split('/')[2]}-${inaugurationDate.split('/')[1]}-${inaugurationDate.split('/')[0]}` : inaugurationDate : '',
+        COMPLETED_DATE:completedDate ? `${completedDate.split('/')[2]}-${completedDate.split('/')[1]}-${completedDate.split('/')[0]}` : '',
+        IS_AUTH:isRecordAuthorized ? 1 : 0,
+        IMPLIMANTATION_AUTHORITY:implementationAuthority
+      }
 
+      console.log(payload);
+
+      if(!inaugurationPhoto?.includes('http') && !inaugurationPhoto?.includes('https') && inaugurationPhoto?.length > 0){
+        payload.inaugurationPhotoBase64 = inaugurationPhoto;
+      }
+
+      if(!completedDatePhoto?.includes('http') && !completedDatePhoto?.includes('https') && completedDatePhoto?.length > 0){
+        payload.completionPhotoBase64 = completedDatePhoto;
+      }
+
+      const response = await  callAPI('https://rainwaterharvesting-backend.onrender.com/updateRecords','POST',payload);
+
+      if(response && response.status != 200){
+        console.log(response);
+        setError('Something went wrong');
+        setIsLoading(false);
+        return;
+      }
+
+      setError('');
+      setIsLoading(false);
+      ToastAndroid.show('Record Edited Successfully',ToastAndroid.SHORT);
+      console.log(229,response);
     }
     catch(error){
-
+      setError(error.message);
+      console.log(error);
     }
   }
 
@@ -213,18 +292,10 @@ const CreateEditRecords = ({route,navigation}) => {
       }
 
       payload.Inauguration_PHOTO1 = inaugurationPhoto;
-      if(!inaugurationPhoto){
+      if(inaugurationDate.length > 0 && !inaugurationPhoto){
         setError('Inauguration Photo is needed');
       }
       
-      // if(!inaugurationPhoto.includes('https') && inaugurationPhoto.length > 0){
-      //   payload.Inauguration_PHOTO1 = inaugurationPhoto
-      // }
-
-      // if(!completedDatePhoto.includes('https') && completedDatePhoto.length > 0){
-      //   payload.COMPLETED_PHOTO1 = completedDatePhoto;
-      // }
-
       const response = await callAPI('https://rainwaterharvesting-backend.onrender.com/createRecords','POST',payload);
       setError('');
       setIsLoading(false);
@@ -236,6 +307,22 @@ const CreateEditRecords = ({route,navigation}) => {
       setError(error.message)
       console.log(error.message);
     }
+  }
+
+  const resetImage = async(recordType) =>{
+    try{
+      setError('');
+      const response = await callAPI(`https://rainwaterharvesting-backend.onrender.com/resetImage`,'POST',{recordId:recordId,type:recordType});
+      if(response?.data?.code != 200){
+        setError('Something went wrong');
+        return
+      }
+      ToastAndroid.show('Image Deleted Successfully',ToastAndroid.SHORT);
+      recordType ? setInaugurationPhoto(null) : setCompletedPhoto(null);
+    }catch(error){
+      setError(error.message);
+      console.log(error.message);
+    } 
   }
 
   const onSetDependentPicklistValue = (selectedPicklistValues) =>{
@@ -279,25 +366,133 @@ const CreateEditRecords = ({route,navigation}) => {
             }
             <View style={{marginTop:15}}>
               <AppText>Address</AppText>
-              <AppInput  style={{borderColor:'black'}} onTextChange={(e)=>setLocation(e)} placeholderText='Enter Address' value={location} />
+                {
+                    isEditMode ? 
+                      <AppTextBold>{location}</AppTextBold>
+                      :
+                      <AppInput  style={{borderColor:'black'}} onTextChange={(e)=>setLocation(e)} placeholderText='Enter Address' value={location} />
+                }
+
             </View>
 
             <View style={{marginTop:15}}>
               <AppText>Work Details</AppText>
-              <AppInput  style={{borderColor:'black'}} onTextChange={(e)=>setWorkDetails(e)} placeholderText='Enter Work Details' value={workDetails} />
+              {
+                isEditMode ?
+                  <AppTextBold>{workDetails}</AppTextBold>
+                  :
+                  <AppInput  style={{borderColor:'black'}} onTextChange={(e)=>setWorkDetails(e)} placeholderText='Enter Work Details' value={workDetails} />
+              }
+            </View>
+
+            <View style={{marginTop:15}}>
+              <AppText>Implementation Authority</AppText>
+              {
+                isEditMode ? 
+                  <AppTextBold>{implementationAuthority}</AppTextBold>
+                  :
+                  <AppInput  style={{borderColor:'black'}} onTextChange={(e)=>setImplementationAuthority(e)} placeholderText='Enter Implementation Authority' value={implementationAuthority} />
+              }
             </View>
 
             <View style={{width:'100%',justifyContent:'space-between'}}>
               <View style={{marginTop:15}}>
-                <AppText>Inauguration Date</AppText>
-                <AppInput style={{borderColor:'black'}} onTextChange={()=>{}} onSelect={()=>onInaugurationDateFocus(true)} placeholderText='Select Inauguration Date' onFocusEnd={()=>onInaugurationDateFocus(false)} value={inaugurationDate} />
+                <AppText>Start Work Date</AppText>
+                {
+                  userDetails ?
+                    <AppInput style={{borderColor:'black'}} onTextChange={()=>{}} onSelect={()=>onInaugurationDateFocus(true)} placeholderText='Select Inauguration Date' onFocusEnd={()=>onInaugurationDateFocus(false)} value={inaugurationDate} />
+                  :
+                  <AppTextBold>{inaugurationDate}</AppTextBold>
+                }
               </View>
 
-              <View style={{marginTop:15}}>
+              {
+                userDetails ?
+                  <View style={{width:'100%'}}>
+                      <View style={{marginTop:15}}>
+                        <AppText>Start Work Photo</AppText>
+                        <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
+                          <AppButton buttonStyle={{width:'35%',height:30}} icon='camera' iconSize={20} iconColor='white' text='Take Image' onPressButton={()=>pickImageFromCamera('Inauguration')} />
+                            {
+                              userDetails.userType === 1 && isEditMode ?
+                                <AppButton buttonStyle={{width:'35%',height:30,marginLeft:10}} icon='trash-bin' iconSize={18} iconColor='white' text='Delete Image' onPressButton={()=> resetImage(1)} />
+                              : 
+                              null
+                            }
+                        </View>
+                      </View>
+                  </View>  
+                : 
+                
+                null
+              }
+              
+              {
+                  isInaugurationImageLoading ?
+                    <ActivityIndicator size={24}/>
+                  :
+                  inaugurationPhoto && (
+                    <View style={{width:'100%'}}>
+                        <Image
+                          source={{uri: inaugurationPhoto}}
+                          style={styles.image}
+                        />
+                      </View>
+                    )
+                  }
+
+            {
+              isEditMode ?
+              <>
+            <View style={{marginTop:15}}>
                 <AppText>Completed Date</AppText>
-                <AppInput style={{borderColor:'black'}} onTextChange={()=>{}} onSelect={()=>onCompletedDateFocus(true)} placeholderText='Select Completion Date' onFocusEnd={()=>onCompletedDateFocus(false)} value={completedDate} />
-              </View>
-            
+                {
+                  userDetails ? 
+                  <AppInput style={{borderColor:'black'}} onTextChange={()=>{}} onSelect={()=>onCompletedDateFocus(true)} placeholderText='Select Completion Date' onFocusEnd={()=>onCompletedDateFocus(false)} value={completedDate} />
+                  :
+                  <AppTextBold>{completedDate}</AppTextBold>
+                }
+            </View>
+
+            {
+              userDetails ? 
+              <View style={{width:'100%'}}>
+                <View style={{marginTop:15}}>
+                  <AppText>Completed Photo</AppText>
+                  <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
+                    <AppButton buttonStyle={{width:'35%',height:30}} icon='camera' iconSize={20} iconColor='white' text='Take Image' onPressButton={()=> pickImageFromCamera('Completion')} />
+                    {
+                      userDetails.type === 1 && isEditMode ? 
+                        <AppButton buttonStyle={{width:'35%',height:30,marginLeft:10}} icon='trash-bin' iconSize={18} iconColor='white' text='Delete Image' onPressButton={()=> resetImage(0)} />
+                        :
+                        null
+                    }
+                  </View>
+                </View>
+            </View>           
+              :
+              null
+            }
+   
+
+                {
+                isCompletedImageLoading ?
+                  <ActivityIndicator size={24}/>
+                :
+                  completedDatePhoto && (
+                  <View style={{width:'100%'}}>
+                      <Image
+                        source={{uri: completedDatePhoto}}
+                        style={styles.image}
+                      />
+                    </View>
+                  )
+                }
+                </>
+                :
+              null
+            }
+             
             {
               showInaugurationDatePicker ?
               <DateTimePicker onChange={onInaugurationDateSelect} value={new Date()}/> 
@@ -311,8 +506,11 @@ const CreateEditRecords = ({route,navigation}) => {
               null
             }
           </View>
-          
-          <View style={{width:'100%'}}>
+
+          {
+            userDetails ?
+              
+              <View style={{width:'100%'}}>
               {
                 !latLongLoader ? 
                 <View style={{marginTop:15}}>
@@ -320,67 +518,58 @@ const CreateEditRecords = ({route,navigation}) => {
                   <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
                     <AppButton buttonStyle={{width:150,height:30}} icon='map' iconSize={20} iconColor='white' text='Capture Location' onPressButton={requestLocationPermission} />
                   </View>
+                  {
+                    <>
+                    {console.log(latitude,longitude)}
+                  { 
+                  
+                    latitude && longitude ?
+                      <>
+                        <AppText>Latitude : {`${latitude}`}</AppText>
+                        <AppText>Longitude : {`${longitude}`}</AppText>
+                      </>
+                      
+                    :
+                    null}
+                    </>
+                  }
+
                 </View>
                 :
                 <View style={{width:'100%',alignItems:'flex-start',marginTop:25}}> 
                     <ActivityIndicator size={24}/>
                 </View>
               }
-              
-          </View>
-              
-          <View style={{width:'100%'}}>
-              <View style={{marginTop:15}}>
-                <AppText>Inauguration Photo</AppText>
-                <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
-                  <AppButton buttonStyle={{width:'35%',height:30}} icon='camera' iconSize={20} iconColor='white' text='Take Image' onPressButton={pickImageFromCamera} />
-                </View>
-              </View>
-          </View>
-
-          {
-          isImageLoading ?
-            <ActivityIndicator size={24}/>
-          :
-          inaugurationPhoto && (
-            <View style={{width:'100%'}}>
-                <Image
-                  source={{uri: inaugurationPhoto}}
-                  style={styles.image}
-                />
-              </View>
-            )
+            </View> : null
           }
 
           {
-            isEditMode ? 
+            isEditMode && userDetails.userType === 1 ?
             
-            <View style={{width:'100%'}}>
-                  <View style={{marginTop:15}}>
-                    <AppText>Completed Photo</AppText>
-                    <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
-                      <AppButton buttonStyle={{width:'35%',height:30}} icon='camera' iconSize={20} iconColor='white' text='Take Image' onPressButton={pickImageFromCamera} />
-                      {/* <AppButton buttonStyle={{width:'35%',marginLeft:10,height:30}} icon='file-tray' iconSize={20} iconColor='white' text='Choose Image' onPressButton={pickImageFromLibrary} /> */}
-                      {
-                        completedDatePhoto ? 
-                        <AppButton buttonStyle={{width:'20%',marginLeft:10,height:30}} iconStyle={{marginLeft:15}} icon='eye' iconSize={20} iconColor='white' onPressButton={pickImageFromCamera} />
-                          :
-                          null
-                      }
-                    </View>
-                  </View>
-              </View>
-            : null
+            <View style={{width:'100%',flexDirection:'row',alignItems:'center',marginTop:25}}>
+              <CheckBox
+                value={isRecordAuthorized}
+                onValueChange={()=> setIsRecordAuthorized(!isRecordAuthorized)}
+              />
+              <AppText>Authorize this Record</AppText>
+            </View> : null
           }
-
-          <View style={{width:'100%',alignItems:'center',marginVertical:25}}>
-            {
-              isLoading ? 
-                <ActivityIndicator size={24}/>
-              : 
-              <AppButton buttonStyle={{width:'50%'}} onPressButton={()=> isEditMode ? onEditClick() : onCreateRecordClick()} text={`${isEditMode ? 'Edit Record' : 'Create Record'}`}/>
-            }
-          </View>  
+          
+          
+          {
+           userDetails ? 
+            <View style={{width:'100%',alignItems:'center',marginVertical:25}}>
+              {
+                isLoading ? 
+                  <ActivityIndicator size={24}/>
+                : 
+                <AppButton buttonStyle={{width:'50%'}} onPressButton={()=> isEditMode ? onEditClick() : onCreateRecordClick()} text={`${isEditMode ? 'Submit' : 'Create Record'}`}/>
+              }
+          </View> 
+           :
+           null 
+          }
+          
           
         </AppCard>
       </ScrollView>

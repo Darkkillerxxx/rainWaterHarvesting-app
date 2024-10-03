@@ -62,7 +62,7 @@ const DashboardCards = ({dashboardValues}) =>{
                             <Image source={require('../assets/Images/cut.png')} style={{width:50,height:50,objectFit:'fill'}}/>
                         </View>
                         <View style={{width:'50%',height:'100%',justifyContent:'center'}}>
-                            <AppText style={{fontSize:16}}>Groundwork</AppText>
+                            <AppText style={{fontSize:16}}>Start Work</AppText>
                             <AppTextBold style={{fontSize:20}}>{dashboardValues ? dashboardValues.inaugrationCount : 0}</AppTextBold>
                         </View>
                     </View>

@@ -9,11 +9,10 @@ import { ScrollView } from 'react-native';
 import { PieChart } from "react-native-gifted-charts";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPicklistValues } from '../features/getPicklistValuesSlice';
-import MapView, {Marker} from 'react-native-maps';
-import { useFocusEffect } from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
 import {callAPI} from '../common/api';
-import AppPicklist from '../components/AppPicklist'
+import AppHeader from '../components/AppHeader';
+
 
 const Dashboard = () => {
 
@@ -37,7 +36,7 @@ const Dashboard = () => {
       const response = await callAPI('https://rainwaterharvesting-backend.onrender.com/getSliderImages','GET',null);
       console.log(36,response.data);
       const filteredSliderImages = response.data.data.filter((files) => files.name.includes('.png') || files.name.includes('.jpg'));
-      const sliderImages = filteredSliderImages.map((image,index)=> {
+      const sliderImages = filteredSliderImages?.map((image,index)=> {
         return {
           id:index,
           uri:`https://jalshakti.co.in/Sliders/${image.name}`
@@ -50,23 +49,28 @@ const Dashboard = () => {
     }
   }
 
+  const onPicklistValuesChange = (selectedValue) =>{
+    setDistrict(selectedValue);
+  }
+
   const assignDistrictValues = () => {
-    const districtPicklistValuesSet = [...new Set(data.data.map((value) => value.DISTRICT.trim().toUpperCase()))]
+    const districtPicklistValuesSet = [...new Set(data?.data?.map((value) => value.DISTRICT.trim().toUpperCase()))]
     setDistrictValues([...districtPicklistValuesSet]); 
   }
 
   const setDefaultDistrict = () =>{
-      userDetails && (userDetails.userType === 2 || userDetails.userType === 3) ? setDistrict(userDetails.district) : setDistrict('SURAT')
+      userDetails && (userDetails.userType === 2 || userDetails.userType === 3) ? setDistrict(userDetails.district) : setDistrict('')
   }
 
   const fetchData = async() =>{
     try{
+      console.log(63,`https://rainwaterharvesting-backend.onrender.com/getDashboardValues?DISTRICT=${district}`)
       const response = await callAPI(`https://rainwaterharvesting-backend.onrender.com/getDashboardValues?DISTRICT=${district}`,'GET',null);
       if(response.data){
         console.log(response.data);
         setDashboardValues({...response.data});
         
-        const pieData = response.data.pieChart.map((res)=>{
+        const pieData = response?.data?.pieChart?.map((res)=>{
           return (
             {value: res.count, color: getRandomColor(), text:res.count,pieText:res.TALUKA}
           )
@@ -80,10 +84,8 @@ const Dashboard = () => {
     }    
   }
 
-  useEffect(()=>{
-    if(district.length > 0){
+  useEffect(()=>{ 
       fetchData();
-    }
   },[district])
 
 
@@ -113,10 +115,8 @@ const Dashboard = () => {
 
   return (
     <MasterLayout>  
+      <AppHeader text='Dashboard' selectedValue={district} onChangeDistrict={onPicklistValuesChange} showPicklist={userDetails || userDetails?.userType === 1 ? false : true} districtValues={districtValues}/>
       <ScrollView>
-        {/* <View style={{width:'50%',padding:10}}>
-          <AppPicklist onChangeValue={(identifier,e)=> setDistrict(e)} selectedValue={district} identifier={'District'} label={'Select District'} picklistValues={districtValues}/>
-        </View> */}
         <View style={{width:'100%'}}>
             <Carousel
                 loop
@@ -145,7 +145,7 @@ const Dashboard = () => {
   
        <View style={{width:'100%',flexDirection:'row',justifyContent:'space-around',marginTop:10}}>
           <AppCard style={{height:200}}>
-            <AppText style={{marginBottom:10}}>Groundwork</AppText>
+            <AppText style={{marginBottom:10}}>Start Work</AppText>
             <RNSpeedometer value={dashboardValues ? (dashboardValues.inaugrationCount / dashboardValues.totalTargetCount) * 100 : 0} size={150}/>
           </AppCard> 
           <AppCard style={{height:200}}>
@@ -168,7 +168,7 @@ const Dashboard = () => {
 
             <View style={styles.legendContainer}>
               <ScrollView>
-                {pieChartValues.map((item, index) => (
+                {pieChartValues?.map((item, index) => (
                   <View key={index} style={styles.legendItem}>
                     <View style={[styles.colorBox, { backgroundColor: item.color }]} />
                     <Text style={styles.legendText}>{item.pieText}</Text>
