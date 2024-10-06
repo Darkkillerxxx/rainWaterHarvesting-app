@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.0.0",
+    "@react-native-community/checkbox": "^0.5.17",
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-native-community/geolocation": "^3.4.0",
     "@react-native-community/image-editor": "^4.2.1",
@@ -15,6 +16,7 @@
     "@react-navigation/drawer": "^6.7.2",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.11.0",
+    "@react-navigation/stack": "^6.4.1",
     "@reduxjs/toolkit": "^2.2.7",
     "axios": "^1.7.7",
     "expo": "~51.0.28",

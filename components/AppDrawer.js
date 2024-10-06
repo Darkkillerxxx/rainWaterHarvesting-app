@@ -1,10 +1,11 @@
-import { Image, View, StyleSheet, TouchableOpacity } from "react-native";
+import { Image, View, StyleSheet, TouchableOpacity, ToastAndroid } from "react-native";
 import AppText from "./AppText";
 import Icon from 'react-native-vector-icons/Ionicons';  // For icons (optional)
 import { menuContents } from "../common/menu";
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from "react";
 import { storeUserDetails } from '../features/userDetails';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const AppDrawer = (props) =>{
@@ -25,7 +26,9 @@ const AppDrawer = (props) =>{
 
     const logOut=()=>{
         setUserData(null);
-        dispatch(storeUserDetails(null))
+        dispatch(storeUserDetails(null));
+        AsyncStorage.getAllKeys().then((keys)=> AsyncStorage.multiRemove(keys));
+        ToastAndroid.show('Please Restart the App',ToastAndroid.SHORT);
     }
 
     return (

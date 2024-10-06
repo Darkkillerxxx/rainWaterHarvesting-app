@@ -16,12 +16,13 @@ const AppModal = ({userDetails,inputOptions,applyFilters,picklistValues}) =>{
 
     useEffect(()=>{
         if(userDetails){
-            if(userDetails.userType === 2){
+            if(userDetails?.userType === 2 || userDetails?.userType === 3){
                 onPicklistSelect('District',userDetails.district);
             }
-            if(userDetails.userType === 3){
-                onPicklistSelect('District',userDetails.district);
-            }
+        }
+        else{
+            setDistrict('SURAT')
+            onPicklistSelect('District','SURAT');
         }
         if(picklistValues && picklistValues.data.length > 0){
             setDistrictPicklistValues()
@@ -29,13 +30,14 @@ const AppModal = ({userDetails,inputOptions,applyFilters,picklistValues}) =>{
     },[])
 
     useEffect(()=>{
-        if(userDetails && district.length > 0 && userDetails.userType === 3){
-            onPicklistSelect('Taluka',userDetails.taluka);
+        if(userDetails && district.length > 0 && userDetails?.userType === 3){
+            console.log(34,userDetails?.taluka);
+            onPicklistSelect('Taluka',userDetails?.taluka);
         }
     },[district])
 
     const setDistrictPicklistValues = () => {
-        const districtPicklistValuesSet = [...new Set(picklistValues.data.map((value) => value.DISTRICT.trim().toUpperCase()))]
+        const districtPicklistValuesSet = [...new Set(picklistValues.data.map((value) => value?.DISTRICT?.trim().toUpperCase()))]
         setDistrictValues(districtPicklistValuesSet); 
     }
 
@@ -44,15 +46,16 @@ const AppModal = ({userDetails,inputOptions,applyFilters,picklistValues}) =>{
             
             case 'District':
                 setDistrict(selectedValue);
-                const filteredTalukaPicklistValues = picklistValues.data.filter((value) => value.DISTRICT.trim().toUpperCase() === selectedValue);
-                const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value.TALUKA.trim().toUpperCase()))];
+                const filteredTalukaPicklistValues = picklistValues.data.filter((value) => value?.DISTRICT?.trim().toUpperCase() === selectedValue.trim()?.toUpperCase());
+                const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value?.TALUKA?.trim().toUpperCase()))];
                 setTalukaValues(talukaPicklistvaluesSet); 
                 break
 
             case 'Taluka':
                 setTaluka(selectedValue);
-                const filteredVillagePicklistValues = picklistValues.data.filter((value) => value.DISTRICT.trim().toUpperCase() === district && value.TALUKA.trim().toUpperCase() === selectedValue );
-                const villagePicklistvaluesSet =  [...new Set(filteredVillagePicklistValues.map((value) => value.VILLAGE.trim().toUpperCase()))];
+                const filteredVillagePicklistValues = picklistValues.data.filter((value) => value?.DISTRICT?.trim().toUpperCase() === district?.trim().toUpperCase() && value?.TALUKA?.trim().toUpperCase() === selectedValue?.trim()?.toUpperCase());
+                console.log(57,filteredVillagePicklistValues)
+                const villagePicklistvaluesSet =  [...new Set(filteredVillagePicklistValues.map((value) => value?.VILLAGE?.trim().toUpperCase()))];
                 setVillageValues(villagePicklistvaluesSet);
                 break
 
@@ -87,12 +90,12 @@ const AppModal = ({userDetails,inputOptions,applyFilters,picklistValues}) =>{
 
             <View style={{width:'100%'}}>
                 {
-                    userDetails.userType === 1 || !userDetails ?
+                    userDetails?.userType === 1 || !userDetails ?
                     <AppPicklist identifier='District' selectedValue={district} style={{borderRadius:5}} label='Select District' picklistValues={districtValues} onChangeValue={onPicklistSelect} />: null
                 }
 
                 {
-                    userDetails.userType === 1 || userDetails.userType === 2 || !userDetails ?
+                    userDetails?.userType === 1 || userDetails?.userType === 2 || !userDetails ?
                     <AppPicklist identifier='Taluka'  selectedValue={taluka} style={{borderRadius:5}} label='Select Taluka' picklistValues={talukaValues} onChangeValue={onPicklistSelect} />: null
                 }
 

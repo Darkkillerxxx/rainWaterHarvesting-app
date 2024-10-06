@@ -20,6 +20,7 @@ const DependentPicklist = ({onSetDependentPicklistValue}) =>{
     })
 
     const assignaVluesAndPicklist = (userType) =>{
+        console.log(23,userDetails)
         switch(userType){
             case 1:
                 assignDistrictValues();
@@ -28,10 +29,10 @@ const DependentPicklist = ({onSetDependentPicklistValue}) =>{
                 setDistrict(userDetails.district);
                 assignTalukaPicklistValues(userDetails.district)
                 break;
-            case 2:
+            case 3:
                 setDistrict(userDetails.district);
-                setTaluka(userDetails.village);
-                assignTalukaPicklistValues(userDetails.district)
+                setTaluka(userDetails.taluka);
+                assignVillagePicklistValue(userDetails.district,userDetails.taluka);
                 break;
             default:
                 assignDistrictValues();
@@ -40,22 +41,23 @@ const DependentPicklist = ({onSetDependentPicklistValue}) =>{
     }
 
     const assignDistrictValues = () => {
-        const districtPicklistValuesSet = [...new Set(data.data.map((value) => value.DISTRICT.trim().toUpperCase()))]
+        const districtPicklistValuesSet = [...new Set(data.data.map((value) => value.DISTRICT?.trim()?.toUpperCase()))]
         setDistrictValues([...districtPicklistValuesSet]); 
     }
 
     const assignTalukaPicklistValues = (district) =>{
         if(district && district.length > 0){
             setDistrict(district);
-            const filteredTalukaPicklistValues = data.data.filter((value) => value.DISTRICT.trim().toUpperCase() === district);
-            const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value.TALUKA.trim().toUpperCase()))];
+            const filteredTalukaPicklistValues = data.data.filter((value) => value.DISTRICT?.trim()?.toUpperCase() === district?.trim().toUpperCase());
+            const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value.TALUKA?.trim()?.toUpperCase()))];
             setTalukaValues([...talukaPicklistvaluesSet]);
           }
     }
 
     const assignVillagePicklistValue = (district,taluka) => {
-        const filteredVillagePicklistValues = data.data.filter((value) => value.DISTRICT.trim().toUpperCase() === district && value.TALUKA.trim().toUpperCase() === taluka );
-        const villagePicklistvaluesSet =  [...new Set(filteredVillagePicklistValues.map((value) => value.VILLAGE.trim().toUpperCase()))];
+        const filteredVillagePicklistValues = data.data.filter((value) => value.DISTRICT?.trim()?.toUpperCase() === district && value.TALUKA?.trim()?.toUpperCase() === taluka?.trim().toUpperCase() );
+        console.log(filteredVillagePicklistValues);
+        const villagePicklistvaluesSet =  [...new Set(filteredVillagePicklistValues.map((value) => value.VILLAGE?.trim()?.toUpperCase()))];
         setVillagValues(villagePicklistvaluesSet);
     }
 
@@ -105,7 +107,7 @@ const DependentPicklist = ({onSetDependentPicklistValue}) =>{
     return (
         <>
             {
-                userDetails.userType === 1 || !userDetails ? 
+                userDetails?.userType === 1 || !userDetails ? 
                 <View style={{width:'100%',marginTop:-5}}>
                     <AppPicklist style={{borderRadius:5}} label='Select District' onChangeValue={onPicklistValueChange} identifier={'District'} selectedValue={district} picklistValues={districtValues}/>
                 </View>
@@ -114,7 +116,7 @@ const DependentPicklist = ({onSetDependentPicklistValue}) =>{
             }
            
            {
-                userDetails.userType === 1 || userDetails.userType === 2 || !userDetails ? 
+                userDetails?.userType === 1 || userDetails?.userType === 2 || !userDetails ? 
                 <View style={{width:'100%',marginTop:-10}}>
                     <AppPicklist style={{borderRadius:5}} label='Select Taluka' onChangeValue={onPicklistValueChange} identifier={'Taluka'} selectedValue={taluka} picklistValues={talukaValues}/>
                 </View>
