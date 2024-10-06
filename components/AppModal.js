@@ -31,6 +31,7 @@ const AppModal = ({userDetails,inputOptions,applyFilters,picklistValues}) =>{
 
     useEffect(()=>{
         if(userDetails && district.length > 0 && userDetails?.userType === 3){
+            console.log(34,userDetails?.taluka);
             onPicklistSelect('Taluka',userDetails?.taluka);
         }
     },[district])
@@ -45,14 +46,15 @@ const AppModal = ({userDetails,inputOptions,applyFilters,picklistValues}) =>{
             
             case 'District':
                 setDistrict(selectedValue);
-                const filteredTalukaPicklistValues = picklistValues.data.filter((value) => value?.DISTRICT?.trim().toUpperCase() === selectedValue);
+                const filteredTalukaPicklistValues = picklistValues.data.filter((value) => value?.DISTRICT?.trim().toUpperCase() === selectedValue.trim()?.toUpperCase());
                 const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value?.TALUKA?.trim().toUpperCase()))];
                 setTalukaValues(talukaPicklistvaluesSet); 
                 break
 
             case 'Taluka':
                 setTaluka(selectedValue);
-                const filteredVillagePicklistValues = picklistValues.data.filter((value) => value?.DISTRICT?.trim().toUpperCase() === district && value?.TALUKA?.trim().toUpperCase() === selectedValue );
+                const filteredVillagePicklistValues = picklistValues.data.filter((value) => value?.DISTRICT?.trim().toUpperCase() === district?.trim().toUpperCase() && value?.TALUKA?.trim().toUpperCase() === selectedValue?.trim()?.toUpperCase());
+                console.log(57,filteredVillagePicklistValues)
                 const villagePicklistvaluesSet =  [...new Set(filteredVillagePicklistValues.map((value) => value?.VILLAGE?.trim().toUpperCase()))];
                 setVillageValues(villagePicklistvaluesSet);
                 break

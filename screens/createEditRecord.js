@@ -35,7 +35,10 @@ const CreateEditRecords = ({route,navigation}) => {
   const [isCompletedImageLoading,setCompletedIsImageLoading]= useState(false);
   const [recordId,setRecordId] = useState(null);
   const [isRecordAuthorized,setIsRecordAuthorized] = useState(false)
-  const [implementationAuthority,setImplementationAuthority] = useState('')
+  const [implementationAuthority,setImplementationAuthority] = useState('');
+  const [isInaugurationImageEdited,setIsInaugurationImageEdited] = useState(false);
+  const [isCompletedImageEdited,setIsCompletedImageEdited] = useState(false);
+
 
   const [longitude,setLongitude] = useState(null);
   const [latitude,setLatitude] = useState(null);
@@ -48,6 +51,23 @@ const CreateEditRecords = ({route,navigation}) => {
   const { userDetails } = useSelector((state)=>{
     return state.userDetails;
   })
+
+  const resetForm=()=>{
+      setDistrict(null);
+      setTaluka(null);
+      setVillage('');
+      setLocation('');
+      setWorkDetails('');
+      setLongitude('');
+      setLatitude('');
+      setRecordId('');
+      setCompletedDate('');
+      setInaugurationDate('');
+      setInaugurationPhoto(null); 
+      setCompletedPhoto(null);
+      setIsRecordAuthorized(false);
+      setImplementationAuthority('');
+  }
 
   useFocusEffect(
     React.useCallback(()=>{
@@ -69,6 +89,8 @@ const CreateEditRecords = ({route,navigation}) => {
         setInaugurationPhoto(Inauguration_PHOTO1 ? Inauguration_PHOTO1.split('T')[0] : null);
         setIsRecordAuthorized(IS_AUTH ? true : false)
         setImplementationAuthority(IMPLIMANTATION_AUTHORITY);
+        setIsInaugurationImageEdited(false);
+        setIsCompletedImageEdited(false);
 
         console.log(61,COMPLETED_PHOTO1,IS_AUTH);
         
@@ -76,20 +98,7 @@ const CreateEditRecords = ({route,navigation}) => {
       }
       else{
         setIsEditMode(false);
-        setDistrict(null);
-        setTaluka(null);
-        setVillage('');
-        setLocation('');
-        setWorkDetails('');
-        setLongitude('');
-        setLatitude('');
-        setRecordId('');
-        setCompletedDate('');
-        setInaugurationDate('');
-        setInaugurationPhoto(null); 
-        setCompletedPhoto(null);
-        setIsRecordAuthorized(false);
-        setImplementationAuthority('');
+        resetForm();
       }
     },[route])  
   )
@@ -215,8 +224,9 @@ const CreateEditRecords = ({route,navigation}) => {
         saveFormat: ImageFormat.base64,
       });
 
-      photoType === 'Inauguration' ? setInaugurationIsImageLoading(false) : setCompletedIsImageLoading(false)
-      photoType === 'Inauguration' ? setInaugurationPhoto(markRes) : setCompletedPhoto(markRes)      
+      photoType === 'Inauguration' ? setInaugurationIsImageLoading(false) : setCompletedIsImageLoading(false);
+      photoType === 'Inauguration' ? setInaugurationPhoto(markRes) : setCompletedPhoto(markRes)      ;
+      photoType === 'Inauguration' ? setIsInaugurationImageEdited(true) : setIsCompletedImageEdited(true);      
     } catch (error) {
       photoType === 'Inauguration' ? setInaugurationIsImageLoading(false) : setCompletedIsImageLoading(false);
       console.log('Error marking image:', error);
@@ -234,26 +244,26 @@ const CreateEditRecords = ({route,navigation}) => {
       }
       const payload = {
         ID:recordId,
-        DISTRICT:district,
-        TALUKA:taluka,
-        VILLAGE:village,
+        DISTRICT:district.toUpperCase(),
+        TALUKA:taluka.toUpperCase(),
+        VILLAGE:village.toUpperCase(),
         LOCATION:location,
         WORK_NAME:workDetails,
         LONGITUDE:longitude ? longitude : 0,
         LATITUDE:latitude ? latitude : 0,
         Inauguration_DATE:inaugurationDate ? inaugurationDate.includes('/') ? `${inaugurationDate.split('/')[2]}-${inaugurationDate.split('/')[1]}-${inaugurationDate.split('/')[0]}` : inaugurationDate : '',
-        COMPLETED_DATE:completedDate ? `${completedDate.split('/')[2]}-${completedDate.split('/')[1]}-${completedDate.split('/')[0]}` : '',
+        COMPLETED_DATE:completedDate ? completedDate.includes('/') ? `${completedDate.split('/')[2]}-${completedDate.split('/')[1]}-${completedDate.split('/')[0]}` : completedDate : '',
         IS_AUTH:isRecordAuthorized ? 1 : 0,
         IMPLIMANTATION_AUTHORITY:implementationAuthority
       }
 
-      console.log(payload);
+      console.log(254,payload);
 
-      if(!inaugurationPhoto?.includes('http') && !inaugurationPhoto?.includes('https') && inaugurationPhoto?.length > 0){
+      if(isInaugurationImageEdited && inaugurationPhoto?.length > 0){
         payload.inaugurationPhotoBase64 = inaugurationPhoto;
       }
 
-      if(!completedDatePhoto?.includes('http') && !completedDatePhoto?.includes('https') && completedDatePhoto?.length > 0){
+      if(isCompletedImageEdited && completedDatePhoto?.length > 0){
         payload.completionPhotoBase64 = completedDatePhoto;
       }
 
@@ -268,6 +278,8 @@ const CreateEditRecords = ({route,navigation}) => {
 
       setError('');
       setIsLoading(false);
+      setIsInaugurationImageEdited(false);
+      setIsCompletedImageEdited(false);
       ToastAndroid.show('Record Edited Successfully',ToastAndroid.SHORT);
       console.log(229,response);
     }
@@ -281,25 +293,34 @@ const CreateEditRecords = ({route,navigation}) => {
     try{
       setIsLoading(true);
       const payload = {
-        DISTRICT:district,
-        TALUKA:taluka,
-        VILLAGE:village,
+        DISTRICT:district.toUpperCase(),
+        TALUKA:taluka.toUpperCase(),
+        VILLAGE:village.toUpperCase(),
         LOCATION:location,
         WORK_NAME:workDetails,
         LONGITUDE:longitude ? longitude : 0,
         LATITUDE:latitude ? latitude : 0,
         Inauguration_DATE:inaugurationDate ? `${inaugurationDate.split('/')[2]}-${inaugurationDate.split('/')[1]}-${inaugurationDate.split('/')[0]}` : '',
+        IMPLIMANTATION_AUTHORITY:implementationAuthority
       }
 
       payload.Inauguration_PHOTO1 = inaugurationPhoto;
       if(inaugurationDate.length > 0 && !inaugurationPhoto){
         setError('Inauguration Photo is needed');
+        return;
       }
       
       const response = await callAPI('https://rainwaterharvesting-backend.onrender.com/createRecords','POST',payload);
+
+      if(response && response.status != 200){
+        setError(response.message);
+        return;
+      }
+      
       setError('');
       setIsLoading(false);
       ToastAndroid.show('Record Created Successfully',ToastAndroid.SHORT);
+      resetForm();
       console.log(response);
     }
     catch(error){
@@ -341,7 +362,18 @@ const CreateEditRecords = ({route,navigation}) => {
       }
       <ScrollView>
         <AppCard style={styles.cardStyle}>
-          <AppTextBold>{isEditMode ? 'Edit Record' : 'Create Record'}</AppTextBold>
+            <AppTextBold>{isEditMode ? 'Edit Record' : 'Create Record'}</AppTextBold>
+
+            {
+              isEditMode ? 
+              <View style={{width:'100%',marginTop:10}}>
+                <AppText>Record Id</AppText>
+                <AppTextBold>{route?.params?.record.ID}</AppTextBold>
+              </View>
+              :
+              null
+            }
+            
           {
             isEditMode ? 
               <>

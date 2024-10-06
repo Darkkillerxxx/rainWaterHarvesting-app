@@ -42,9 +42,7 @@ const Login = ({navigation}) => {
         setError(null);
         const apiResponse = await callAPI('https://rainwaterharvesting-backend.onrender.com/login','POST',{
           username:username,
-          password:password,
-          taluka:taluka,
-          district:district
+          password:password
         }
       )
       if(apiResponse.data.code != 200){
@@ -52,12 +50,14 @@ const Login = ({navigation}) => {
         setIsLoading(false);
         return
       }
+
+      console.log(56,apiResponse.data);
       
       const userDetails = {
         username,
-        district,
-        taluka,
-        userType : district ? taluka ? 3 : 2 : 1
+        district:apiResponse.data.userData.DISTRICT,
+        taluka:apiResponse.data.userData.TALUKA,
+        userType : apiResponse.data.userData.DISTRICT && apiResponse.data.userData.DISTRICT.length > 0 ? apiResponse.data.userData.TALUKA && apiResponse.data.userData.TALUKA.length > 0 ? 3 : 2 : 1
       }
       // Navigate to Dashboard logic and store user info in Redux Logic
       dispatch(storeUserDetails(userDetails));
@@ -99,22 +99,19 @@ const Login = ({navigation}) => {
           null
           }
         
-        <ScrollView style={{padding:10}}>
-        <Image style={{height:150,width:150,marginVertical:15}} source={require('../assets/Images/logo.jpeg')}/>
-        <AppTextBold style={{fontSize:20}}>Login or Sign Up to Jal Shakti</AppTextBold>
-        
-        <AppPicklist selectedValue={district} identifier="District" label='Select District' picklistValues={districtPicklistValues} onChangeValue={onPicklistValueChange}/>
-        <AppPicklist selectedValue={taluka} identifier="Taluka" label='Select Taluka' picklistValues={talukaPicklistValues} onChangeValue={onPicklistValueChange}/>
-        
-        <View style={{width:'100%',marginTop:20}}>
-          <AppText>Enter Username</AppText>
-          <AppInput style={{borderColor:'black',borderRadius:10}} onTextChange={(e) => setUsername(e)} placeholderText={"Username"} />
-        </View>
+        <View style={{padding:10,width:'100%',alignItems:'center'}}>
+          <Image style={{height:150,width:150,marginVertical:15}} source={require('../assets/Images/logo.jpeg')}/>
+          <AppTextBold style={{fontSize:20}}>Login or Sign Up to Jal Shakti</AppTextBold>
+          
+          <View style={{width:'100%',marginTop:20}}>
+            <AppText>Enter Username</AppText>
+            <AppInput style={{borderColor:'black',borderRadius:10}} onTextChange={(e) => setUsername(e)} placeholderText={"Username"} />
+          </View>
 
-        <View style={{width:'100%',marginTop:20}}>
-          <AppText>Enter Password</AppText>
-          <AppInput style={{borderColor:'black',borderRadius:10}} onTextChange={(e) => setPassword(e)} placeholderText={"Password"} isSecured={true} />
-        </View>
+          <View style={{width:'100%',marginTop:20}}>
+            <AppText>Enter Password</AppText>
+            <AppInput style={{borderColor:'black',borderRadius:10}} onTextChange={(e) => setPassword(e)} placeholderText={"Password"} isSecured={true} />
+          </View>
 
         {
           isLoading ? 
@@ -123,7 +120,7 @@ const Login = ({navigation}) => {
           <AppButton text='Log In' onPressButton={()=> onLogInClick()} buttonStyle={{width:'100%',marginTop:25}}/>
         }
 
-        </ScrollView>
+        </View>
     </MasterLayout>
   );
 }
@@ -133,7 +130,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'flex-start',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     padding:10
   },
 });

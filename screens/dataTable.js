@@ -11,13 +11,13 @@ import AppInput from '../components/AppInput';
 import AppButton from '../components/AppButton';
 import Modal from 'react-native-modal';
 import AppModal from '../components/AppModal';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
 
 const ViewRecords = ({ navigation }) => {
   const inputOptions = [{ label: 'Only Ground Work Records', value: 1, isSelected: false }, { label: 'Only Completed Records', value: 2, isSelected: false }];
   const [isLoading, setIsLoading] = useState(false);
   const { data } = useSelector((state) => state.data);
-
   const { userDetails } = useSelector((state) => state.userDetails);
   const [page, setPage] = useState(0);
   const [numberOfItemsPerPageList] = useState([10, 15, 20]);
@@ -38,6 +38,8 @@ const ViewRecords = ({ navigation }) => {
       'GET'
     );
     console.log(`https://rainwaterharvesting-backend.onrender.com/fetchRecords?District=${district ? district : 'SURAT'}&Taluka=${taluka ? taluka : ''}&Village=${village ? village : ''}&SearchText=${searchText}&ShowInaugurated=${showInaugurated ? true : ''}&ShowCompleted=${showCompleted ? true : ''}`)
+    //console.log(apiResponse);
+    
     if (apiResponse.data.code != 200) {
       return;
     }
@@ -99,6 +101,7 @@ const ViewRecords = ({ navigation }) => {
         <ScrollView horizontal style={{ width: '100%', marginTop: 25 }}>
           <DataTable>
             <DataTable.Header>
+              <DataTable.Title style={{ width: 75 }}></DataTable.Title>
               <DataTable.Title style={{ width: 75 }}>District</DataTable.Title>
               <DataTable.Title style={{ width: 75 }}>Taluka</DataTable.Title>
               <DataTable.Title style={{ width: 75 }}>Village</DataTable.Title>
@@ -110,6 +113,9 @@ const ViewRecords = ({ navigation }) => {
 
             {recordsToDisplay.slice(from, to).map((item, index) => (
               <DataTable.Row onPress={() => onRecordClick(item)} key={index}>
+                <DataTable.Cell style={{ width: 75 }}>
+                  <Icon name={item.IS_AUTH ? 'lock-closed-sharp' : 'lock-open-sharp'} size={20} />
+                </DataTable.Cell>
                 <DataTable.Cell style={{ width: 75 }}>{item.DISTRICT}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 75 }}>{item.TALUKA}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 75 }}>{item.VILLAGE}</DataTable.Cell>

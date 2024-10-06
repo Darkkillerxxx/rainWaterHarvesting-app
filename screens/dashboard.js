@@ -54,7 +54,7 @@ const Dashboard = () => {
   }
 
   const assignDistrictValues = () => {
-    const districtPicklistValuesSet = [...new Set(data?.data?.map((value) => value.DISTRICT.trim().toUpperCase()))]
+    const districtPicklistValuesSet = [...new Set(data?.data?.map((value) => value.DISTRICT.trim().toUpperCase()))];
     setDistrictValues([...districtPicklistValuesSet]); 
   }
 

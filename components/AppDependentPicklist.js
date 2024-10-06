@@ -48,14 +48,14 @@ const DependentPicklist = ({onSetDependentPicklistValue}) =>{
     const assignTalukaPicklistValues = (district) =>{
         if(district && district.length > 0){
             setDistrict(district);
-            const filteredTalukaPicklistValues = data.data.filter((value) => value.DISTRICT?.trim()?.toUpperCase() === district);
+            const filteredTalukaPicklistValues = data.data.filter((value) => value.DISTRICT?.trim()?.toUpperCase() === district?.trim().toUpperCase());
             const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value.TALUKA?.trim()?.toUpperCase()))];
             setTalukaValues([...talukaPicklistvaluesSet]);
           }
     }
 
     const assignVillagePicklistValue = (district,taluka) => {
-        const filteredVillagePicklistValues = data.data.filter((value) => value.DISTRICT?.trim()?.toUpperCase() === district && value.TALUKA?.trim()?.toUpperCase() === taluka );
+        const filteredVillagePicklistValues = data.data.filter((value) => value.DISTRICT?.trim()?.toUpperCase() === district && value.TALUKA?.trim()?.toUpperCase() === taluka?.trim().toUpperCase() );
         console.log(filteredVillagePicklistValues);
         const villagePicklistvaluesSet =  [...new Set(filteredVillagePicklistValues.map((value) => value.VILLAGE?.trim()?.toUpperCase()))];
         setVillagValues(villagePicklistvaluesSet);
