@@ -1,5 +1,5 @@
 import React,{useEffect, useState} from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import AppTextBold from '../components/AppTextBold';
 import AppText from '../components/AppText';
 import MasterLayout from '../components/MasterLayout'
@@ -8,8 +8,14 @@ import AppInput from '../components/AppInput';
 import AppButton from '../components/AppButton';
 import { useSelector } from 'react-redux';
 import { callAPI } from '../common/api';
+import { useDispatch } from 'react-redux';
+import { storeUserDetails } from '../features/userDetails';
+import AppPicklist  from '../components/AppPicklist';
+import AppMessage from '../components/AppMessage';
 
-const Login = () => {
+const Login = ({navigation}) => {
+  const dispatch = useDispatch();
+
   const [district,setDistrict] = useState('');
   const [districtPicklistValues,setDistrictPicklistValues] = useState([]);
   const [taluka,setTaluka] = useState('');
@@ -17,6 +23,7 @@ const Login = () => {
   const [username,setUsername] = useState('');
   const [password,setPassword] = useState('');
   const [error,setError] = useState(null);
+  const [isLoading,setIsLoading] = useState(false);
 
   const { loading, data } = useSelector((state) => {
     return state.data
@@ -29,32 +36,56 @@ const Login = () => {
       }
   },[data])
 
-  const onSelectDistrict = (selectedDistrict) =>{
-    if(selectedDistrict && selectedDistrict.length > 0){
-        setDistrict(selectedDistrict);
-        const filteredTalukaPicklistValues = data.data.filter((value) => value.DISTRICT.trim().toUpperCase() === selectedDistrict);
-        const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value.TALUKA.trim().toUpperCase()))];
-        setTalukaPicklistValues([...talukaPicklistvaluesSet]);
-      }
-  }
-
   const onLogInClick = async() =>{
+    setIsLoading(true);
     try{
         setError(null);
         const apiResponse = await callAPI('https://rainwaterharvesting-backend.onrender.com/login','POST',{
           username:username,
-          password:password,
-          taluka:taluka,
-          district:district
+          password:password
         }
       )
-      console.log(49,apiResponse.data);
       if(apiResponse.data.code != 200){
         setError(apiResponse.data.message);
+        setIsLoading(false);
         return
       }
+
+      console.log(56,apiResponse.data);
+      
+      const userDetails = {
+        username,
+        district:apiResponse.data.userData.DISTRICT,
+        taluka:apiResponse.data.userData.TALUKA,
+        userType : apiResponse.data.userData.DISTRICT && apiResponse.data.userData.DISTRICT.length > 0 ? apiResponse.data.userData.TALUKA && apiResponse.data.userData.TALUKA.length > 0 ? 3 : 2 : 1
+      }
+      // Navigate to Dashboard logic and store user info in Redux Logic
+      dispatch(storeUserDetails(userDetails));
+      navigation.navigate('Dashboard');
+      
+      setIsLoading(false);
     }catch(error){
+      setIsLoading(false);
       throw error
+    }
+  }
+
+  const onPicklistValueChange = (identifier,selectedValue) =>{
+    console.log(identifier,selectedValue)
+    switch(identifier){
+      case 'District':
+        if(selectedValue && selectedValue.length > 0){
+          setDistrict(selectedValue);
+          const filteredTalukaPicklistValues = data.data.filter((value) => value.DISTRICT.trim().toUpperCase() === selectedValue);
+          const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value.TALUKA.trim().toUpperCase()))];
+          setTalukaPicklistValues([...talukaPicklistvaluesSet]);
+        }
+        break;
+      case 'Taluka':
+        setTaluka(selectedValue)
+        break
+      default:
+        break
     }
   }
 
@@ -63,63 +94,33 @@ const Login = () => {
         
           {
           error ? 
-            <View style={{width:'100%',height:50,backgroundColor:'#ed4356',justifyContent:'center',padding:10,borderRadius:10}}>
-              <AppText style={{color:'white'}}>{error}</AppText>
-            </View>
+            <AppMessage message={error}/>
           : 
           null
           }
         
-        <ScrollView style={{padding:10}}>
-        <Image style={{height:150,width:150,marginVertical:15}} source={require('../assets/Images/logo.jpeg')}/>
-        <AppTextBold style={{fontSize:20}}>Login or Sign Up to Jal Shakti</AppTextBold>
-        
-        <AppText style={{marginTop:20}}>Select District</AppText>
-        <View style={{width:'100%',borderWidth:1,height:50,borderRadius:10,marginTop:10}}>  
-          <Picker
-            selectedValue={district}
-            style={{width:'100%',height:20}}
-            onValueChange={(itemValue) =>
-              onSelectDistrict(itemValue)
-            }>
-            <Picker.Item label="None" value='' />
-            {districtPicklistValues.map((value,index)=>{
-              return (
-                <Picker.Item key={index} label={value} value={value} />
-              )
-            })}
-          </Picker>
-        </View>
+        <View style={{padding:10,width:'100%',alignItems:'center'}}>
+          <Image style={{height:150,width:150,marginVertical:15}} source={require('../assets/Images/logo.jpeg')}/>
+          <AppTextBold style={{fontSize:20}}>Login or Sign Up to Jal Shakti</AppTextBold>
+          
+          <View style={{width:'100%',marginTop:20}}>
+            <AppText>Enter Username</AppText>
+            <AppInput style={{borderColor:'black',borderRadius:10}} onTextChange={(e) => setUsername(e)} placeholderText={"Username"} />
+          </View>
 
-        <AppText style={{marginTop:20}}>Select Taluka</AppText>
-        <View style={{width:'100%',borderWidth:1,height:50,borderRadius:10,marginTop:10}}>  
-          <Picker
-            selectedValue={taluka}
-            style={{width:'100%',height:20}}
-            onValueChange={(itemValue) =>
-              setTaluka(itemValue)
-            }>
-            <Picker.Item label="None" value="" />
-            {talukaPicklistValues.map((value,index)=>{
-              return (
-                <Picker.Item key={index} label={value} value={value} />
-              )
-            })}
-          </Picker>
-        </View>
-        
-        <View style={{width:'100%',marginTop:20}}>
-          <AppText>Enter Username</AppText>
-          <AppInput style={{borderColor:'black',borderRadius:10}} onTextChange={(e) => setUsername(e)} placeholderText={"Username"} />
-        </View>
+          <View style={{width:'100%',marginTop:20}}>
+            <AppText>Enter Password</AppText>
+            <AppInput style={{borderColor:'black',borderRadius:10}} onTextChange={(e) => setPassword(e)} placeholderText={"Password"} isSecured={true} />
+          </View>
 
-        <View style={{width:'100%',marginTop:20}}>
-          <AppText>Enter Password</AppText>
-          <AppInput style={{borderColor:'black',borderRadius:10}} onTextChange={(e) => setPassword(e)} placeholderText={"Password"} isSecured={true} />
-        </View>
+        {
+          isLoading ? 
+          <ActivityIndicator style={{marginTop:25}} size="large" color="#1890ff" />
+          :
+          <AppButton text='Log In' onPressButton={()=> onLogInClick()} buttonStyle={{width:'100%',marginTop:25}}/>
+        }
 
-        <AppButton text='Log In' onPressButton={()=> onLogInClick()} buttonStyle={{width:'100%',marginTop:25}}/>
-        </ScrollView>
+        </View>
     </MasterLayout>
   );
 }
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'flex-start',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     padding:10
   },
 });
