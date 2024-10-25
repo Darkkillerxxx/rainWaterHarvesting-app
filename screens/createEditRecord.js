@@ -21,6 +21,7 @@ import CheckBox from '@react-native-community/checkbox';
 const CreateEditRecords = ({route,navigation}) => {
   
   const [isEditMode,setIsEditMode] = useState(false);
+  const [canUserEditRecord,setCanUserEditRecord] = useState(false);
   const [location,setLocation] = useState('');
   const [workDetails,setWorkDetails] = useState('');
   const [inaugurationDate,setInaugurationDate] = useState('');
@@ -36,6 +37,10 @@ const CreateEditRecords = ({route,navigation}) => {
   const [recordId,setRecordId] = useState(null);
   const [isRecordAuthorized,setIsRecordAuthorized] = useState(false)
   const [implementationAuthority,setImplementationAuthority] = useState('');
+  const [implementationAuthorityValues,setImplementationAuthorityValues] = useState([]);
+  const [fundsValues,setFundsValues] = useState([]);
+  const [funds,setFunds] = useState([]);
+  const [allotedFunds,setAllotedFunds]= useState(null);
   const [isInaugurationImageEdited,setIsInaugurationImageEdited] = useState(false);
   const [isCompletedImageEdited,setIsCompletedImageEdited] = useState(false);
 
@@ -47,10 +52,13 @@ const CreateEditRecords = ({route,navigation}) => {
   const [village,setVillage] = useState('');
   const [error,setError] = useState('');
 
-  
   const { userDetails } = useSelector((state)=>{
     return state.userDetails;
   })
+
+  const { data } = useSelector((state) => {
+    return state.data
+  });
 
   const resetForm=()=>{
       setDistrict(null);
@@ -67,15 +75,24 @@ const CreateEditRecords = ({route,navigation}) => {
       setCompletedPhoto(null);
       setIsRecordAuthorized(false);
       setImplementationAuthority('');
+      setFunds('');
+      setAllotedFunds('');
   }
 
   useFocusEffect(
     React.useCallback(()=>{
-      console.log(54,route?.params?.record)
+      // console.log(54,route?.params?.record);
+
+      const implementationAuthorityValueSet = [...new Set(data?.implementationAuthorityValues?.map((value)=> value?.Implimantation_Authority))]
+      const fundsValueSet = [...new Set(data?.fundsValues?.map((value)=> value?.FUNDS))]
+      setImplementationAuthorityValues([...implementationAuthorityValueSet]);
+      setFundsValues([...fundsValueSet]);
+      
       if(route?.params?.record){
-        const {ID, DISTRICT, LONGITUDE, LATITUDE, TALUKA, VILLAGE, LOCATION, WORK_NAME, Inauguration_PHOTO1, COMPLETED_PHOTO1, COMPLETED_DATE, Inauguration_DATE, IS_AUTH, IMPLIMANTATION_AUTHORITY } = route?.params?.record;
-        
+        const {ID, DISTRICT, LONGITUDE, LATITUDE, TALUKA, VILLAGE, LOCATION, WORK_NAME, Inauguration_PHOTO1, COMPLETED_PHOTO1, COMPLETED_DATE, Inauguration_DATE, IS_AUTH, IMPLIMANTATION_AUTHORITY, FUNDS, APPROX_AMOUNT, CRE_USR_ID, CRE_BY_ADMIN } = route?.params?.record;
+
         setIsEditMode(true);
+        checkIfUserCanEdit(CRE_USR_ID);
         setDistrict(DISTRICT);
         setTaluka(TALUKA);
         setVillage(VILLAGE);
@@ -87,12 +104,14 @@ const CreateEditRecords = ({route,navigation}) => {
         setCompletedDate(COMPLETED_DATE ? COMPLETED_DATE.split('T')[0]: '');
         setInaugurationDate(Inauguration_DATE ? Inauguration_DATE.split('T')[0]: '');
         setInaugurationPhoto(Inauguration_PHOTO1 ? Inauguration_PHOTO1.split('T')[0] : null);
-        setIsRecordAuthorized(IS_AUTH ? true : false)
+        setIsRecordAuthorized(IS_AUTH ? true : false);
         setImplementationAuthority(IMPLIMANTATION_AUTHORITY);
+        setFunds(FUNDS);
+        setAllotedFunds(APPROX_AMOUNT);
         setIsInaugurationImageEdited(false);
         setIsCompletedImageEdited(false);
 
-        console.log(61,COMPLETED_PHOTO1,IS_AUTH);
+        // console.log(61,COMPLETED_PHOTO1,IS_AUTH);
         
         setCompletedPhoto(COMPLETED_PHOTO1 ? COMPLETED_PHOTO1 : null);
       }
@@ -100,8 +119,19 @@ const CreateEditRecords = ({route,navigation}) => {
         setIsEditMode(false);
         resetForm();
       }
+      
     },[route])  
   )
+
+  const checkIfUserCanEdit = (id) =>{
+    if(userDetails?.userType){
+      if((userDetails?.userType === 1) || (parseInt(userDetails?.id) === parseInt(id))){
+        setCanUserEditRecord(true);
+        return;
+      }
+      setCanUserEditRecord(false);
+    }
+  }
 
   const onInaugurationDateFocus = (isShow) => {
     setShowInaugurationDatePicker(isShow)
@@ -237,8 +267,8 @@ const CreateEditRecords = ({route,navigation}) => {
     try{
       setIsLoading(true);
       setError('');
-      console.log(230,userDetails.userType,isRecordAuthorized)
-      if(userDetails.userType != 1 && isRecordAuthorized){
+      console.log(230,userDetails?.userType,isRecordAuthorized)
+      if(userDetails?.userType != 1 && isRecordAuthorized){
         setError('This record is authorised by the Admin so cannot be eddited');
         return;
       }
@@ -257,7 +287,7 @@ const CreateEditRecords = ({route,navigation}) => {
         IMPLIMANTATION_AUTHORITY:implementationAuthority
       }
 
-      console.log(254,payload);
+      // console.log(254,payload);
 
       if(isInaugurationImageEdited && inaugurationPhoto?.length > 0){
         payload.inaugurationPhotoBase64 = inaugurationPhoto;
@@ -267,7 +297,7 @@ const CreateEditRecords = ({route,navigation}) => {
         payload.completionPhotoBase64 = completedDatePhoto;
       }
 
-      const response = await  callAPI('https://rainwaterharvesting-backend.onrender.com/updateRecords','POST',payload);
+      const response = await  callAPI('https://rainwaterharvesting-backend-1.onrender.com/updateRecords','POST',payload);
 
       if(response && response.status != 200){
         console.log(response);
@@ -293,15 +323,17 @@ const CreateEditRecords = ({route,navigation}) => {
     try{
       setIsLoading(true);
       const payload = {
-        DISTRICT:district.toUpperCase(),
-        TALUKA:taluka.toUpperCase(),
-        VILLAGE:village.toUpperCase(),
+        DISTRICT:district?.toUpperCase(),
+        TALUKA:taluka?.toUpperCase(),
+        VILLAGE:village?.toUpperCase(),
         LOCATION:location,
         WORK_NAME:workDetails,
         LONGITUDE:longitude ? longitude : 0,
         LATITUDE:latitude ? latitude : 0,
         Inauguration_DATE:inaugurationDate ? `${inaugurationDate.split('/')[2]}-${inaugurationDate.split('/')[1]}-${inaugurationDate.split('/')[0]}` : '',
-        IMPLIMANTATION_AUTHORITY:implementationAuthority
+        IMPLIMANTATION_AUTHORITY:implementationAuthority,
+        FUNDS:funds,
+        APPROX_AMOUNT:allotedFunds
       }
 
       payload.Inauguration_PHOTO1 = inaugurationPhoto;
@@ -310,10 +342,11 @@ const CreateEditRecords = ({route,navigation}) => {
         return;
       }
       
-      const response = await callAPI('https://rainwaterharvesting-backend.onrender.com/createRecords','POST',payload);
+      const response = await callAPI('https://rainwaterharvesting-backend-1.onrender.com/createRecords','POST',payload,userDetails.token);
 
       if(response && response.status != 200){
-        setError(response.message);
+        console.log(response);
+        setError(typeof response.message === 'string' ? response.message: response.code);
         return;
       }
       
@@ -333,7 +366,7 @@ const CreateEditRecords = ({route,navigation}) => {
   const resetImage = async(recordType) =>{
     try{
       setError('');
-      const response = await callAPI(`https://rainwaterharvesting-backend.onrender.com/resetImage`,'POST',{recordId:recordId,type:recordType});
+      const response = await callAPI(`https://rainwaterharvesting-backend-1.onrender.com/resetImage`,'POST',{recordId:recordId,type:recordType});
       if(response?.data?.code != 200){
         setError('Something went wrong');
         return
@@ -399,7 +432,7 @@ const CreateEditRecords = ({route,navigation}) => {
             <View style={{marginTop:15}}>
               <AppText>Address</AppText>
                 {
-                    isEditMode ? 
+                    !canUserEditRecord ? 
                       <AppTextBold>{location}</AppTextBold>
                       :
                       <AppInput  style={{borderColor:'black'}} onTextChange={(e)=>setLocation(e)} placeholderText='Enter Address' value={location} />
@@ -410,28 +443,56 @@ const CreateEditRecords = ({route,navigation}) => {
             <View style={{marginTop:15}}>
               <AppText>Work Details</AppText>
               {
-                isEditMode ?
+                !canUserEditRecord ?
                   <AppTextBold>{workDetails}</AppTextBold>
                   :
                   <AppInput  style={{borderColor:'black'}} onTextChange={(e)=>setWorkDetails(e)} placeholderText='Enter Work Details' value={workDetails} />
               }
             </View>
 
-            <View style={{marginTop:15}}>
-              <AppText>Implementation Authority</AppText>
               {
-                isEditMode ? 
-                  <AppTextBold>{implementationAuthority}</AppTextBold>
+                !canUserEditRecord ?
+                  <View style={{marginTop:15}}>
+                    <AppText>Implementation Authority</AppText>
+                        <AppTextBold>{implementationAuthority}</AppTextBold>
+                  </View>
                   :
-                  <AppInput  style={{borderColor:'black'}} onTextChange={(e)=>setImplementationAuthority(e)} placeholderText='Enter Implementation Authority' value={implementationAuthority} />
+                  <View>
+                    <AppPicklist label='Implementation Authority' style={{borderRadius:5}} picklistValues={implementationAuthorityValues} identifier='ImplementationAuthority' onChangeValue={(identifier,value)=> setImplementationAuthority(value)} selectedValue={implementationAuthority} />
+                  </View>
               }
+
+              {
+                !canUserEditRecord ?
+                  <View style={{marginTop:15}}>
+                    <AppText>Funds Used</AppText>
+                    <AppTextBold>{funds}</AppTextBold>
+                  </View>
+                  :
+                  <View style={{marginTop:15}}>
+                    <AppText>Funds Used</AppText>
+                    <AppPicklist style={{borderRadius:5,marginTop:-25}} picklistValues={fundsValues} identifier='Funds' onChangeValue={(identifier,value)=> setFunds(value)} selectedValue={funds} />
+                  </View>
+              }
+
+          
+       
+
+            <View style={{marginTop:15}}>
+              <AppText>Alloted Funds (₹)</AppText>
+              {
+                !canUserEditRecord ?
+                  <AppTextBold>{allotedFunds?.toString()}</AppTextBold>
+                  :
+                  <AppInput style={{borderColor:'black'}} onTextChange={(e)=>setAllotedFunds(e)} isNumeric={true} placeholderText='Enter Alloted Funds Amount' value={allotedFunds?.toString()} />
+                }
             </View>
 
             <View style={{width:'100%',justifyContent:'space-between'}}>
               <View style={{marginTop:15}}>
                 <AppText>Start Work Date</AppText>
                 {
-                  userDetails ?
+                  userDetails && canUserEditRecord ?
                     <AppInput style={{borderColor:'black'}} onTextChange={()=>{}} onSelect={()=>onInaugurationDateFocus(true)} placeholderText='Select Inauguration Date' onFocusEnd={()=>onInaugurationDateFocus(false)} value={inaugurationDate} />
                   :
                   <AppTextBold>{inaugurationDate}</AppTextBold>
@@ -439,14 +500,50 @@ const CreateEditRecords = ({route,navigation}) => {
               </View>
 
               {
-                userDetails ?
+            userDetails && canUserEditRecord  ?
+              
+            <View style={{width:'100%'}}>
+              {
+                !latLongLoader ? 
+                <View style={{marginTop:15}}>
+                  <AppText>Update Location</AppText>
+                  <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
+                    <AppButton buttonStyle={{width:150,height:30}} icon='map' iconSize={20} iconColor='white' text='Capture Location' onPressButton={requestLocationPermission} />
+                  </View>
+                  {
+                    <>
+                    {console.log(latitude,longitude)}
+                  { 
+                  
+                    latitude && longitude ?
+                      <>
+                        <AppText>Latitude : {`${latitude}`}</AppText>
+                        <AppText>Longitude : {`${longitude}`}</AppText>
+                      </>
+                      
+                    :
+                    null}
+                    </>
+                  }
+
+                </View>
+                :
+                <View style={{width:'100%',alignItems:'flex-start',marginTop:25}}> 
+                    <ActivityIndicator size={24}/>
+                </View>
+              }
+            </View> : null
+          }
+
+              {
+                userDetails  && canUserEditRecord ?
                   <View style={{width:'100%'}}>
                       <View style={{marginTop:15}}>
                         <AppText>Start Work Photo</AppText>
                         <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
                           <AppButton buttonStyle={{width:'35%',height:30}} icon='camera' iconSize={20} iconColor='white' text='Take Image' onPressButton={()=>pickImageFromCamera('Inauguration')} />
                             {
-                              userDetails.userType === 1 && isEditMode ?
+                              userDetails?.userType === 1 && isEditMode ?
                                 <AppButton buttonStyle={{width:'35%',height:30,marginLeft:10}} icon='trash-bin' iconSize={18} iconColor='white' text='Delete Image' onPressButton={()=> resetImage(1)} />
                               : 
                               null
@@ -479,7 +576,7 @@ const CreateEditRecords = ({route,navigation}) => {
             <View style={{marginTop:15}}>
                 <AppText>Completed Date</AppText>
                 {
-                  userDetails ? 
+                  userDetails && canUserEditRecord ? 
                   <AppInput style={{borderColor:'black'}} onTextChange={()=>{}} onSelect={()=>onCompletedDateFocus(true)} placeholderText='Select Completion Date' onFocusEnd={()=>onCompletedDateFocus(false)} value={completedDate} />
                   :
                   <AppTextBold>{completedDate}</AppTextBold>
@@ -487,7 +584,7 @@ const CreateEditRecords = ({route,navigation}) => {
             </View>
 
             {
-              userDetails ? 
+              userDetails && canUserEditRecord ? 
               <View style={{width:'100%'}}>
                 <View style={{marginTop:15}}>
                   <AppText>Completed Photo</AppText>
@@ -540,43 +637,7 @@ const CreateEditRecords = ({route,navigation}) => {
           </View>
 
           {
-            userDetails ?
-              
-              <View style={{width:'100%'}}>
-              {
-                !latLongLoader ? 
-                <View style={{marginTop:15}}>
-                  <AppText>Update Location</AppText>
-                  <View style={{width:'100%',flexDirection:'row',marginTop:10}}>
-                    <AppButton buttonStyle={{width:150,height:30}} icon='map' iconSize={20} iconColor='white' text='Capture Location' onPressButton={requestLocationPermission} />
-                  </View>
-                  {
-                    <>
-                    {console.log(latitude,longitude)}
-                  { 
-                  
-                    latitude && longitude ?
-                      <>
-                        <AppText>Latitude : {`${latitude}`}</AppText>
-                        <AppText>Longitude : {`${longitude}`}</AppText>
-                      </>
-                      
-                    :
-                    null}
-                    </>
-                  }
-
-                </View>
-                :
-                <View style={{width:'100%',alignItems:'flex-start',marginTop:25}}> 
-                    <ActivityIndicator size={24}/>
-                </View>
-              }
-            </View> : null
-          }
-
-          {
-            isEditMode && userDetails.userType === 1 ?
+            isEditMode && userDetails?.userType === 1 ?
             
             <View style={{width:'100%',flexDirection:'row',alignItems:'center',marginTop:25}}>
               <CheckBox
@@ -589,7 +650,7 @@ const CreateEditRecords = ({route,navigation}) => {
           
           
           {
-           userDetails ? 
+           userDetails?.isAdmin || canUserEditRecord ? 
             <View style={{width:'100%',alignItems:'center',marginVertical:25}}>
               {
                 isLoading ? 

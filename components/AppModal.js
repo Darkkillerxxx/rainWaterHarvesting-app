@@ -15,6 +15,7 @@ const AppModal = ({userDetails,inputOptions,applyFilters,picklistValues}) =>{
     const [selectedOption,setSelectedOption] = useState(null);
 
     useEffect(()=>{
+        console.log(18,userDetails);
         if(userDetails){
             if(userDetails?.userType === 2 || userDetails?.userType === 3){
                 onPicklistSelect('District',userDetails.district);

@@ -78,7 +78,7 @@ const Register = ({navigation}) => {
 
     try{
         setError(null);
-        const apiResponse = await callAPI('https://rainwaterharvesting-backend.onrender.com/register','POST',{
+        const apiResponse = await callAPI('https://rainwaterharvesting-backend-1.onrender.com/register','POST',{
           username,
           password,
           taluka:taluka.length > 0 ? taluka : null,

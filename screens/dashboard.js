@@ -12,6 +12,7 @@ import { fetchPicklistValues } from '../features/getPicklistValuesSlice';
 import Carousel from 'react-native-reanimated-carousel';
 import {callAPI} from '../common/api';
 import AppHeader from '../components/AppHeader';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 const Dashboard = () => {
@@ -33,8 +34,8 @@ const Dashboard = () => {
 
   const getSiderImages = async() =>{
     try{
-      const response = await callAPI('https://rainwaterharvesting-backend.onrender.com/getSliderImages','GET',null);
-      console.log(36,response.data);
+      const response = await callAPI('https://rainwaterharvesting-backend-1.onrender.com/getSliderImages','GET',null);
+      //console.log(36,response.data);
       const filteredSliderImages = response.data.data.filter((files) => files.name.includes('.png') || files.name.includes('.jpg'));
       const sliderImages = filteredSliderImages?.map((image,index)=> {
         return {
@@ -45,7 +46,7 @@ const Dashboard = () => {
       setSliderImages([...sliderImages]);
     }
     catch(error){
-      console.log(error)
+      //console.log(error)
     }
   }
 
@@ -59,15 +60,16 @@ const Dashboard = () => {
   }
 
   const setDefaultDistrict = () =>{
-      userDetails && (userDetails.userType === 2 || userDetails.userType === 3) ? setDistrict(userDetails.district) : setDistrict('')
+      userDetails && (userDetails.userType === 2 || userDetails.userType === 3) ? setDistrict(userDetails.district) : setDistrict('');
+      console.log(64,userDetails && (userDetails.userType === 2 || userDetails.userType === 3) ? userDetails.district : '');
   }
 
   const fetchData = async() =>{
     try{
-      console.log(63,`https://rainwaterharvesting-backend.onrender.com/getDashboardValues?DISTRICT=${district}`)
-      const response = await callAPI(`https://rainwaterharvesting-backend.onrender.com/getDashboardValues?DISTRICT=${district}`,'GET',null);
+      console.log(63,`https://rainwaterharvesting-backend-1.onrender.com/getDashboardValues?DISTRICT=${district}`)
+      const response = await callAPI(`https://rainwaterharvesting-backend-1.onrender.com/getDashboardValues?DISTRICT=${district}`,'GET',null);
       if(response.data){
-        console.log(response.data);
+        //console.log(response.data);
         setDashboardValues({...response.data});
         
         const pieData = response?.data?.pieChart?.map((res)=>{
@@ -80,7 +82,7 @@ const Dashboard = () => {
       }
     }
     catch(eror){
-      console.log(error)
+      //console.log(error)
     }    
   }
 
@@ -88,13 +90,28 @@ const Dashboard = () => {
       fetchData();
   },[district])
 
-
-  useEffect(() => {
-    dispatch(fetchPicklistValues());
+  useEffect(()=>{
+    dispatch(fetchPicklistValues());     
     getSiderImages();
     assignDistrictValues();
     setDefaultDistrict();
-  }, [dispatch]);
+  },[dispatch])
+
+  useFocusEffect(
+    React.useCallback(()=>{
+      if(userDetails){
+        setDefaultDistrict();
+      }
+    },[userDetails])
+  )
+
+  useFocusEffect(
+    React.useCallback(()=>{
+      if(data){
+        assignDistrictValues();
+      }
+    },[data])
+  )
 
   const getRandomColor=()=> {
     // Generate random values for red, green, and blue within a limited range
@@ -133,7 +150,7 @@ const Dashboard = () => {
                             justifyContent: 'center',
                         }}
                     >
-                      {console.log(sliderImages[index].uri)}
+                      {/* {console.log(sliderImages[index].uri)} */}
                        <Image src={sliderImages[index].uri} style={{width:'100%',height:'100%',objectFit:'fill'}} />
                     </View>
                 )}

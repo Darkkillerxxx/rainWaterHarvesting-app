@@ -40,7 +40,7 @@ const Login = ({navigation}) => {
     setIsLoading(true);
     try{
         setError(null);
-        const apiResponse = await callAPI('https://rainwaterharvesting-backend.onrender.com/login','POST',{
+        const apiResponse = await callAPI('https://rainwaterharvesting-backend-1.onrender.com/login','POST',{
           username:username,
           password:password
         }
@@ -51,19 +51,22 @@ const Login = ({navigation}) => {
         return
       }
 
-      console.log(56,apiResponse.data);
+      console.log(56,apiResponse.data.userData.ID,apiResponse.data.userData.TALUKA,apiResponse.data.userData.TALUKA,typeof apiResponse.data.userData.TALUKA,apiResponse.data.userData.TALUKA != 'null') ;
       
       const userDetails = {
+        id:apiResponse.data.userData.ID,
         username,
+        token:apiResponse.data.token,
         district:apiResponse.data.userData.DISTRICT,
         taluka:apiResponse.data.userData.TALUKA,
-        userType : apiResponse.data.userData.DISTRICT && apiResponse.data.userData.DISTRICT.length > 0 ? apiResponse.data.userData.TALUKA && apiResponse.data.userData.TALUKA.length > 0 ? 3 : 2 : 1
+        userType : apiResponse.data.userData.DISTRICT && apiResponse.data.userData.DISTRICT != 'null' ? apiResponse.data.userData.TALUKA && apiResponse.data.userData.TALUKA != 'null' ? 3 : 2 : 1
       }
-      // Navigate to Dashboard logic and store user info in Redux Logic
+      //Navigate to Dashboard logic and store user info in Redux Logic
+    // console.log(userDetails);
       dispatch(storeUserDetails(userDetails));
       navigation.navigate('Dashboard');
       
-      setIsLoading(false);
+      // setIsLoading(false);
     }catch(error){
       setIsLoading(false);
       throw error

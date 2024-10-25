@@ -1,5 +1,5 @@
 import React,{useState,useEffect} from 'react';
-import { StyleSheet, View, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ScrollView, ActivityIndicator, ToastAndroid } from 'react-native';
 import MasterLayout from '../components/MasterLayout';
 import { DataTable } from 'react-native-paper';
 import AppCard from '../components/AppCard';
@@ -32,28 +32,31 @@ const ViewRecords = ({ navigation }) => {
 
   const fetchRecords = async (district, taluka, village, searchText, showInaugurated, showCompleted) => {
     setIsLoading(true);
-
+    console.log(userDetails?.token);
     const apiResponse = await callAPI(
-      `https://rainwaterharvesting-backend.onrender.com/fetchRecords?District=${district ? district : 'SURAT'}&Taluka=${taluka ? taluka : ''}&Village=${village ? village : ''}&SearchText=${searchText}&ShowInaugurated=${showInaugurated ? true : ''}&ShowCompleted=${showCompleted ? true : ''}`,
-      'GET'
+      `https://rainwaterharvesting-backend-1.onrender.com/fetchRecords?District=${district ? district : 'SURAT'}&Taluka=${taluka ? taluka : ''}&Village=${village ? village : ''}&SearchText=${searchText}&ShowInaugurated=${showInaugurated ? true : ''}&ShowCompleted=${showCompleted ? true : ''}`,
+      'GET',
+      null,
+      userDetails?.token
     );
-    console.log(`https://rainwaterharvesting-backend.onrender.com/fetchRecords?District=${district ? district : 'SURAT'}&Taluka=${taluka ? taluka : ''}&Village=${village ? village : ''}&SearchText=${searchText}&ShowInaugurated=${showInaugurated ? true : ''}&ShowCompleted=${showCompleted ? true : ''}`)
+    //
+    console.log(`https://rainwaterharvesting-backend-1.onrender.com/fetchRecords?District=${district ? district : 'SURAT'}&Taluka=${taluka ? taluka : ''}&Village=${village ? village : ''}&SearchText=${searchText}&ShowInaugurated=${showInaugurated ? true : ''}&ShowCompleted=${showCompleted ? true : ''}`)
     //console.log(apiResponse);
     
     if (apiResponse.data.code != 200) {
+      ToastAndroid.show(`ERROR :- `+apiResponse.data.message,ToastAndroid.SHORT);
       return;
     }
     const { data } = apiResponse.data.data;
     setRecords([...data]);
     setRecordsToDisplay([...data]);
     setIsLoading(false);
-  };
+  };//
 
   useFocusEffect(
     React.useCallback(() => {
       console.log(54,userDetails);
       if (userDetails) {
-        console.log(56);
         fetchRecords(userDetails.district, userDetails.taluka, null, null, null, null);
         return;
       }
@@ -77,6 +80,13 @@ const ViewRecords = ({ navigation }) => {
   useEffect(() => {
     setPage(0);
   }, [itemsPerPage]);
+
+  const isRecordEditable = (createdByUserId) =>{
+    if(parseInt(userDetails?.id) === parseInt(createdByUserId)){
+      return true;
+    }
+    return false;
+  }
 
   return (
     <MasterLayout style={styles.masterLayout}>
@@ -107,6 +117,7 @@ const ViewRecords = ({ navigation }) => {
               <DataTable.Title style={{ width: 75 }}>Village</DataTable.Title>
               <DataTable.Title style={{ width: 100 }}>Address</DataTable.Title>
               <DataTable.Title style={{ width: 100 }}>Work Details</DataTable.Title>
+              <DataTable.Title style={{ width: 150 }}>Implementation Authority</DataTable.Title>
               <DataTable.Title style={{ width: 100 }}>Start Work Date</DataTable.Title>
               <DataTable.Title style={{ width: 100 }}>Completion Date</DataTable.Title>
             </DataTable.Header>
@@ -114,13 +125,14 @@ const ViewRecords = ({ navigation }) => {
             {recordsToDisplay.slice(from, to).map((item, index) => (
               <DataTable.Row onPress={() => onRecordClick(item)} key={index}>
                 <DataTable.Cell style={{ width: 75 }}>
-                  <Icon name={item.IS_AUTH ? 'lock-closed-sharp' : 'lock-open-sharp'} size={20} />
+                  <Icon name={!isRecordEditable(item.CRE_USR_ID) || item.IS_AUTH ? 'lock-closed-sharp' : 'lock-open-sharp'} size={20} />
                 </DataTable.Cell>
                 <DataTable.Cell style={{ width: 75 }}>{item.DISTRICT}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 75 }}>{item.TALUKA}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 75 }}>{item.VILLAGE}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 100 }}>{item.LOCATION}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 125 }}>{item.WORK_NAME}</DataTable.Cell>
+                <DataTable.Cell style={{ width: 125 }}>{item.IMPLIMANTATION_AUTHORITY}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 100 }}>
                   {item.Inauguration_DATE ? new Date(item.Inauguration_DATE).toLocaleDateString('en-GB') : 'N/A'}
                 </DataTable.Cell>

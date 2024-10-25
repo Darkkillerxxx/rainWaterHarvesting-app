@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // Thunk for async API call
 export const fetchPicklistValues = createAsyncThunk('data/fetchPicklistValues', async () => {
-  const response = await fetch('https://rainwaterharvesting-backend.onrender.com/getPicklistValues');
+  const response = await fetch('https://rainwaterharvesting-backend-1.onrender.com/getPicklistValues');
   console.log(7);
   const data = await response.json();
   return data;
@@ -24,6 +24,7 @@ const getPicklistValuesSlice = createSlice({
       })
       .addCase(fetchPicklistValues.fulfilled, (state, action) => {
         state.loading = false;
+        // console.log(29,action.payload);
         state.data = action.payload;
       })
       .addCase(fetchPicklistValues.rejected, (state, action) => {

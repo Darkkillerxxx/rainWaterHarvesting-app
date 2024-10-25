@@ -21,7 +21,7 @@ export const menuContents = [
         screenName:'CreateEditRecords',
         icon:'add-outline',
         visibleToGuest:false,
-        visbleTo:[1,2,3]
+        visbleTo:[2,3]
     },
     {
         label:"Login",
