@@ -31,7 +31,7 @@ const Login = ({navigation}) => {
 
   useEffect(()=>{
     if(!loading && data.data.length > 0){
-        const districtPicklistValuesSet = [...new Set(data.data.map((value) => value.DISTRICT.trim().toUpperCase()))]
+        const districtPicklistValuesSet = [...new Set(data.data.map((value) => value?.DISTRICT?.trim()?.toUpperCase()))]
         setDistrictPicklistValues(districtPicklistValuesSet);    
       }
   },[data])
@@ -79,8 +79,8 @@ const Login = ({navigation}) => {
       case 'District':
         if(selectedValue && selectedValue.length > 0){
           setDistrict(selectedValue);
-          const filteredTalukaPicklistValues = data.data.filter((value) => value.DISTRICT.trim().toUpperCase() === selectedValue);
-          const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value.TALUKA.trim().toUpperCase()))];
+          const filteredTalukaPicklistValues = data.data.filter((value) => value?.DISTRICT?.trim()?.toUpperCase() === selectedValue);
+          const talukaPicklistvaluesSet =  [...new Set(filteredTalukaPicklistValues.map((value) => value?.TALUKA?.trim()?.toUpperCase()))];
           setTalukaPicklistValues([...talukaPicklistvaluesSet]);
         }
         break;
